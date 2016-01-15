@@ -13,11 +13,3 @@ This is a simple pen end effector designed around a standardized servo. Designed
 ## Some Pictures
 ![Assembled in Solid Edge](./img/Assembly.jpg)
 ![Real life pen](./img/Pen IRL.JPG)
-
-
-
-### TESTING
-Markdown | Less | Pretty
-------------- | ------------- | -----------
-*Still* | `renders` | **nicely**
-1 | 2 | 3

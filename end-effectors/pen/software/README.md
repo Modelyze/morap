@@ -1,3 +1,3 @@
-# Software for the Pen Endeffector
+# Software for the Pen End Effector
 
-For chipkit boards (like the uno32) use MPIDE, for arduino board use their environment.
+For programming the boards: For chipkit boards (like the uno32) use MPIDE, for arduino board use their IDE.

@@ -3,7 +3,7 @@
 This section contains the API for controlling the robotic arm as well as information on how it works so it can be ported to other platforms.
 
 ## Available Applications
-An API has been developed for a PIC32 processor, or more specifically the PIC32MX320F128 equipped on a uno32, an arduino compatible development board. This API can be found here [link to pic32 sub-catalog].
+An API has been developed for a PIC32 processor, or more specifically the PIC32MX320F128 equipped on a uno32, an arduino compatible development board. This API can be found [here](./pic32).
 
 ## How it Works
 The communication protocol works on an I2C bus [link to wiki?], a serial communication protocol, running at 100 kHz. The I2C protocol is a single master protocol in which a master can initiate communication and write or request data from an addressable slave. The system can address up to 128 different units (but in practice some of these are reserved resulting in 112 practical addresses), allowing for many different subsystems to be included on the bus. 
@@ -16,43 +16,43 @@ As this is a standardized protocol peripheral hardware, for example sensors, can
 In order for the slave to know what type of data the master writes the first byte sent after the address is an identifier. For some commands, like disabling the motors or calibrating the encoders, only requires this identifier to take effect. If additional data is needed, for example setting reference points for the controller, it is provided after the identifier with data-types larger than one byte sent with LSB first [check].
 
 A table containing the identifiers, their purpose and format (purpose(variable type)(nr of bytes)) are located below:
-| id | thing | format |
-| ----: | :----- | :------ |
-| 0   | disable motors | id(1) |
-| 1   | set position reference point | id(1)-pos_ref(float)(4) |
-| 2   | set speed reference point | id(1)-speed_ref(float)(4) |
-| 3   | set drive voltage | id(1)-voltage(float)(4) |
-| 14  | disable brake | id(1) |
-| 15  | enable brake | id(1) |
-| 16  | calibrate encoder to zero | id(1) |
-| 17  | calibrate encoder to supplied angle | id(1)-angle(float)(4) |
-| 31  | set encoder calibration status to unknown | id(1) |
-| 32  | program new control parameters | see next section |
-| 33  | set control parameters to default values | id(1) |
-| 34  | tune control parameters | see next section |
-| 128 | next read operation will return the angle (float(4)) | id(1) |
-| 129 | next read operation will return the position reference (float(4)) | id(1) |
-| 130 | next read operation will return the speed reference (float(4)) | id(1) |
-| 131 | next read operation will return the motor status (byte(1)) | id(1) |
-| 132 | next read operation will return the controller     | id(1) |
-|     | programming status (byte(1)) | |
-| 133 | next read operation will return the applied voltage (float(4)) | id(1) |
-| 134 | next read operation will return the current (float(4)) | id(1) |
-| 136 | next read operation will return the address of the node (byte(1)) | id(1) |
+
+id | purpose | format 
+---------: | :---------- | :----------- 
+0   | disable motors | id(1) 
+1   | set position reference point | id(1)-pos_ref(float)(4) 
+2   | set speed reference point | id(1)-speed_ref(float)(4) 
+3   | set drive voltage | id(1)-voltage(float)(4) 
+14  | disable brake | id(1) 
+15  | enable brake | id(1) 
+16  | calibrate encoder to zero | id(1) 
+17  | calibrate encoder to supplied angle | id(1)-angle(float)(4) 
+31  | set encoder calibration status to unknown | id(1) 
+32  | program new control parameters | see next section 
+33  | set control parameters to default values | id(1) 
+34  | tune control parameters | see next section 
+128 | next read operation will return the angle (float(4)) | id(1) 
+129 | next read operation will return the position reference (float(4)) | id(1) 
+130 | next read operation will return the speed reference (float(4)) | id(1) 
+131 | next read operation will return the motor status (byte(1)) | id(1) 
+132 | next read operation will return the controller programming status (byte(1)) | id(1) 
+133 | next read operation will return the applied voltage (float(4)) | id(1) 
+134 | next read operation will return the current (float(4)) | id(1) 
+136 | next read operation will return the address of the node (byte(1)) | id(1) 
 
 Potential returns for the motor status are as follows:
-| return value | meaning |
-| ---: | :--- |
-| 1 | enabled |
-| 2 | disabled |
-| 3 | needs encoder calibration |
+return value | meaning
+---------: | :---------
+1 | enabled
+2 | disabled
+3 | needs encoder calibration
 
 Potential returns for the controller programming status are:
-| return value | meaning |
-| ---: | :--- |
-| 1 | nothing has been programmed |
-| 2 | programming successful |
-| 3 | programming failed |
+return value | meaning
+----------: | :------------
+1 | nothing has been programmed
+2 | programming successful
+3 | programming failed
 
 ## Programming the Control Variables
 The controller is described in section [matlab code]. There are three different ways to program the controller with new control parameter.

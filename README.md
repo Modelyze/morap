@@ -26,4 +26,4 @@ The joints provide actuation and control electronics, allowing the user to contr
 
 Links are the connection elements between the joints and can be anything. In this application 20x20 mm aluminum profiles are used. [possible pics?].
 
-End-effectors are devices meant to interact with the real world. They're attached to the end of the arm and can come in different shapes, like pens or claws. Some designs can be found in [link to end-effector folder].
+End-effectors are devices meant to interact with the real world. They're attached to the end of the arm and can come in different shapes, like pens or claws. Some designs can be found [here](./end-effectors).
