@@ -41,6 +41,7 @@ id | purpose | format
 136 | next read operation will return the address of the node (byte(1)) | id(1) 
 
 Potential returns for the motor status are as follows:
+
 return value | meaning
 ---------: | :---------
 1 | enabled
@@ -48,6 +49,7 @@ return value | meaning
 3 | needs encoder calibration
 
 Potential returns for the controller programming status are:
+
 return value | meaning
 ----------: | :------------
 1 | nothing has been programmed
