@@ -8,26 +8,17 @@ Contains different end-effectors capabale of mounting to the arm and interfacing
 This can be done through using chip that works on a 3.3 volt voltage level or using level shifters.
 
 ## Testing
+blablablablablablablabla
 | return value | meaning |
 | ---: | :--- |
 | 1 | nothing has been programmed |
 | 2 | programming successful |
 | 3 | programming failed |
 
+bla bla blablablablablablablabla
+
 return value | meaning 
 ---: | :--- 
 1 | nothing has been programmed 
 2 | programming successful 
 3 | programming failed 
- 
-return value | meaning 
-----------: | :------------- 
-1 | nothing has been programmed 
-2 | programming successful 
-3 | programming failed 
-
-
-Markdown | Less | Pretty
-------------- | ------------- | -----------
-*Still* | `renders` | **nicely**
-1 | 2 | 3
