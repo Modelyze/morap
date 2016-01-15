@@ -24,4 +24,8 @@
 #define retract_pen() (node_write_command(END_EFFECTOR_PEN_ADDRESS,END_EFFECTOR_PEN_RETRACT))
 #define set_pen_pos(b) (node_write_byte(END_EFFECTOR_PEN_ADDRESS,END_EFFECTOR_PEN_SET,b))
 
+// Poke the pen address to see if a pen is on the bus
+// returns 0 if success
+#define poke_pen() (PokeAddress(END_EFFECTOR_PEN_ADDRESS))
+
 #endif

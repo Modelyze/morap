@@ -61,6 +61,8 @@ set_calibration_status_unknown(node_id);
 ```
 This requires you to recalibrate the encoders when activating it again later.
 
+
+## Tuning the control algorithm
 To improve the performance of the feedback controller it sometimes has to be tuned for its intended applications. As the default programmed controller on each of the nodes are optimized around a low inertia they may not operate to their full capacity when they drive a high inertia. So for applications where a motor is supposed to drive a high inertia (for example the first joint of an arm) the controller can be tuned by calling:
 ```c
 tune_control_params(node_id,TUNING_PD_POSITION_CONTROLLER,TUNING_MEDIUM_INERTIA,TUNING_POSITION_POLE_MEDIUM);

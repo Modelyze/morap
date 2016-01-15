@@ -32,11 +32,11 @@ A table containing the identifiers, their purpose and format (purpose(variable t
 | 34  | tune control parameters | see next section |
 | 128 | next read operation will return the angle (float(4)) | id(1) |
 | 129 | next read operation will return the position reference (float(4)) | id(1) |
-| 130 | next read operation will return the speed <br> reference (float(4)) | id(1) |
+| 130 | next read operation will return the speed reference (float(4)) | id(1) |
 | 131 | next read operation will return the motor status (byte(1)) | id(1) |
 | 132 | next read operation will return the controller     | id(1) |
 |     | programming status (byte(1)) | |
-| 133 | next read operation will return the <br> applied voltage (float(4)) | id(1) |
+| 133 | next read operation will return the applied voltage (float(4)) | id(1) |
 | 134 | next read operation will return the current (float(4)) | id(1) |
 | 136 | next read operation will return the address of the node (byte(1)) | id(1) |
 
