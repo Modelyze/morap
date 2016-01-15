@@ -34,7 +34,7 @@ n | value | device | package
 1x | 6x1 pin header | pin header | 6X1P 2.54mm pin header
 
 ## Cables
-The cabling between each node has a female 6 pin connector with 3.96mm raster.
+The cabling between each node has a female 6 pin connector with 3.96mm raster in each end.
 
 ![cable](../img/P_cable_v1.JPG)
 
