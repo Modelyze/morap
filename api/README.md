@@ -82,6 +82,7 @@ id(1) - controller_type(1) - inertia(float)(4) - closed_loop_pole(float)(4)
 ```
 
 The controller type can be be one of the following values:
+
 | value | controller |
 | ---: | :--- |
 | 0 | PD position controller |
@@ -92,4 +93,4 @@ The inertia is the inertia that the controller designs itself around.
 
 The closed loop pole is the pole of the controller which determines how fast the controller is. It should be < 0 and the smaller it is the faster the controller becomes.
 
-After performing any of these commands read the programming status after this to ensure that it was programmed successfully.
+After performing any of these commands read the programming status after to ensure that they where programmed successfully.
