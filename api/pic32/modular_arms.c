@@ -1,9 +1,10 @@
 #ifndef MODULAR_ARMS_C
 #define	MODULAR_ARMS_C
 
+#define _SUPPRESS_PLIB_WARNING
+#define _DISABLE_OPENADC10_CONFIGPORT_WARNING // Removes spam
 #include <plib.h>
 #include <xc.h>
-#include "main_declarations.h"
 #include "modular_arms.h"
 
 
@@ -172,8 +173,6 @@ UINT8 calculate_checksum(control_params_struct* params) {
     return ~((UINT8) sum);
 }
 UINT8 program_control_params(UINT8 node_id, control_params_struct* new_params) {
-    LED5_ON();
-
     UINT8 sendData[60] = {0};
 
     sendData[0] = I2C_PROGRAM_NEW_CONTROL_PARAMS;
@@ -227,8 +226,7 @@ UINT8 program_control_params(UINT8 node_id, control_params_struct* new_params) {
         sprintf(buf,"Error: Failed to transmit to motor when programming control params, error code: %d.\n\r", i2c_status);
         putsUART1(buf); }
 #endif
-
-    LED5_OFF();
+    
     return i2c_status;
 }
 

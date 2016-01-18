@@ -3,6 +3,7 @@
 
 
 #define _SUPPRESS_PLIB_WARNING // For cleaness
+#define _DISABLE_OPENADC10_CONFIGPORT_WARNING
 #include <plib.h>
 #include <xc.h>
 #include "pic32_i2c.h"

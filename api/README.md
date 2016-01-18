@@ -15,7 +15,7 @@ As this is a standardized protocol peripheral hardware, for example sensors, can
 ## Communication Protocol
 In order for the slave to know what type of data the master writes the first byte sent after the address is an identifier. For some commands, like disabling the motors or calibrating the encoders, only requires this identifier to take effect. If additional data is needed, for example setting reference points for the controller, it is provided after the identifier with data-types larger than one byte sent with LSB first [check].
 
-A table containing the identifiers, their purpose and format (purpose(variable type)(nr of bytes)) are located below:
+A table containing the identifiers, their purpose and format (purpose(variable type)(nr of bytes)) (the identifier has the variable type (uint8)) are located below:
 
 id | purpose | format 
 ---------: | :---------- | :----------- 
@@ -57,13 +57,13 @@ return value | meaning
 3 | programming failed
 
 ## Programming the Control Variables
-The controller is described in section [matlab code]. There are three different ways to program the controller with new control parameter.
+The controller is described in the [matlab](../joints/dc-motor-joint/software/matlab) section. There are three different ways to program the controller with new control parameter.
 
-Send the control parameters directly (id = 32). This is done by sending all the parameters described in section [matlab] directly. The format looks like this:  
+Send the control parameters directly (id = 32). This is done by sending all the parameters containted in the discrete controller directly. The format looks like this: 
 ```
-id(1) - cMode(1) - Fs(uint16)(2) - nd(1) - d(float[nd])(nd*4) - 
-  nc(1) - c(float[nc])(nc*4) - nf(1) - f(float[nf])(nf*4) - 
-  I(float)(4) - checksum(1)
+id(1) - cMode(uint8)(1) - Fs(uint16)(2) - nd(uint8)(1) - d(float[nd])(nd*4) - 
+  nc(uint8)(1) - c(float[nc])(nc*4) - nf(uint8)(1) - f(float[nf])(nf*4) - 
+  I(float)(4) - checksum(uint8)(1)
 ```
 
 The checksum is calculated by the following psuedocode:
@@ -74,11 +74,11 @@ while (sum >> 8)
 unsigned char checksum = ~((unsigned char) sum);
 ```
 
-This approach is useful when you want to really know what each joint are doing, for example when performing simulations.
+This approach is useful when you want to really know what each joint are doing, for example when performing simulations that should be compared to reality.
 
 The motor node can also tune themselves when provided with tuning variables (id = 34). The formatting of this message looks like:
 ```
-id(1) - controller_type(1) - inertia(float)(4) - closed_loop_pole(float)(4)
+id(1) - controller_type(uint8)(1) - inertia(float)(4) - closed_loop_pole(float)(4)
 ```
 
 The controller type can be be one of the following values:

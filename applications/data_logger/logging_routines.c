@@ -1,10 +1,13 @@
 #ifndef LOGGING_ROUTINES_C
 #define LOGGING_ROUTINES_C
 
+#define _SUPPRESS_PLIB_WARNING  // Removes spam
+#define _DISABLE_OPENADC10_CONFIGPORT_WARNING
+
 #include <plib.h>
 #include <xc.h>
 #include "main_declarations.h"
-#include "modular_arms.h"
+#include "../../api/pic32/modular_arms.h" //path to modular_arms.h
 #include "logging_routines.h"
  
  // Logging functions
@@ -30,9 +33,9 @@ void TransientLogging(UINT8 node_id, float log_voltage) {
 
     i2c_status = calibrate_encoder_zero(node_id);
 	if (i2c_status != I2C_STATUS_SUCCESFUL) {
-		sprintf(buf,"Motor with id %d not found on the bus, quitting\n\r",node_id);
-		putsUART1(buf);
-		return;
+            sprintf(buf,"Motor with id %d not found on the bus, quitting\n\r",node_id);
+            putsUART1(buf);
+            return;
 	}
     start_millis = millis;
     //set_drive_voltage(1,log_voltage);
@@ -40,7 +43,7 @@ void TransientLogging(UINT8 node_id, float log_voltage) {
     unsigned char log_stage = 0;
     while( curry_time < (2.0 + log_time) ) {
 		
-		start_log_millis = millis;
+        start_log_millis = millis;
         curry_time = ((float)(start_log_millis - start_millis))/1000.0;
 
 
@@ -55,7 +58,7 @@ void TransientLogging(UINT8 node_id, float log_voltage) {
 
         // After log_time set voltage to zero and continue recording
         if ( (log_stage == 1) && (curry_time > (log_time + 1.0)) ) {
-            i2c_status = set_voltage(node_id,0.0);
+            i2c_status = set_voltage(node_id,0.0); // TODO: LP filter
             if (i2c_status == I2C_STATUS_SUCCESFUL) {
                 log_stage = 2;
                 sent_voltage = 0.0;
@@ -64,7 +67,7 @@ void TransientLogging(UINT8 node_id, float log_voltage) {
 
 
         i2c_status = get_angle(node_id,&curr_ang);
-		i2c_status |= get_voltage(node_id,&curr_voltage);
+        i2c_status |= get_voltage(node_id,&curr_voltage);
         if (i2c_status == I2C_STATUS_SUCCESFUL) {
             sprintf(buf,"%f, %f, %f\n\r", curry_time, curr_ang, curr_voltage);
             putsUART1(buf);
@@ -80,18 +83,18 @@ void TransientLogging(UINT8 node_id, float log_voltage) {
 
 // Steps through a lot of random voltages
 void RandomLogging(UINT8 node_id, float max_voltage) {
-	UINT8 i2c_status;
+    UINT8 i2c_status;
     float  curr_ang, curry_time = 0.0, swap_time;
-    UINT16 log_time = 2, log_Ts = 10, random_store = 0;
+    UINT16 log_time = 2, log_Ts = 10;
     float curr_voltage, sent_voltage;
-	UINT32 start_millis, start_log_millis;
+    UINT32 start_millis, start_log_millis, random_store = 0;
 	
     i2c_status = disable_motor(node_id);
-	if (i2c_status != I2C_STATUS_SUCCESFUL) {
-		sprintf(buf,"Motor with id %d not found on the bus, quitting\n\r",node_id);
-		putsUART1(buf);
-		return;
-	}
+    if (i2c_status != I2C_STATUS_SUCCESFUL) {
+        sprintf(buf,"Motor with id %d not found on the bus, quitting\n\r",node_id);
+        putsUART1(buf);
+        return;
+    }
 	
     sprintf(buf,"\nlog voltages: random, log time: %d sec, Ts: %d ms\n\n\r", log_time, log_Ts);
     putsUART1(buf);
@@ -103,7 +106,7 @@ void RandomLogging(UINT8 node_id, float max_voltage) {
     swap_time = ((float) log_time);
 
     calibrate_encoder_zero(node_id);
-	set_drive_voltage(node_id,0.0);
+    set_voltage(node_id,0.0);
     sent_voltage = 0.0;
     start_millis = millis;
 
@@ -128,7 +131,14 @@ void RandomLogging(UINT8 node_id, float max_voltage) {
             i2c_status = set_voltage(node_id,sent_voltage);
             if (i2c_status == I2C_STATUS_SUCCESFUL) {                
                 swap_time = swap_time + ((float) log_time);
+                RED_LED_SWAP();
             }
+        }
+
+        if (GET_BUT2() && curry_time > 2.0) {
+            start_log_millis = millis;
+            while( millis - start_log_millis < 1000.0);
+            break;
         }
 
         // Wait until Ts milliseconds has passed since start
@@ -143,9 +153,9 @@ void RandomLogging(UINT8 node_id, float max_voltage) {
 // Feedback control test
 void ControlLogging(UINT8 node_id) {
     // Logging parameters
-	UINT8 i2c_status;
+    UINT8 i2c_status;
     float  curr_ang, curry_time = 0.0, curr_voltage = 0.0, log_time = 2.0;
-	UINT32 start_millis, start_log_millis, log_Ts = 10;
+    UINT32 start_millis, start_log_millis, log_Ts = 10;
     float reference = 1.5708;
 
 //#define PROGRAM_NEW_PARAMS
@@ -179,12 +189,12 @@ void ControlLogging(UINT8 node_id) {
     putsUART1("starting logging:\n\r");
 
     i2c_status = calibrate_encoder_zero(node_id);
-	if (i2c_status != I2C_STATUS_SUCCESFUL) {
-		sprintf(buf,"Motor with id %d not found on the bus, quitting\n\r",node_id);
-		putsUART1(buf);
-		return;
-	}
-	set_angle(node_id,0.0);
+    if (i2c_status != I2C_STATUS_SUCCESFUL) {
+            sprintf(buf,"Motor with id %d not found on the bus, quitting\n\r",node_id);
+            putsUART1(buf);
+            return;
+    }
+    set_angle(node_id,0.0);
     start_millis = millis;
 	
     unsigned char log_stage = 0;

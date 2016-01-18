@@ -11,7 +11,7 @@
 #ifndef PEN_END_EFFECTOR_H
 #define	PEN_END_EFFECTOR_H
 
-#include "modular_arms.h"
+#include "../../../api/pic32/modular_arms.h" // Path to modular_arms.h
 
 // End effector parameters
 #define END_EFFECTOR_PEN_ADDRESS    0b0011001

@@ -40,9 +40,9 @@ UINT16 read_adc(UINT8 channel) {
     return ReadADC10(0);
 }
 
-void delay_ms(UINT32 ms) {
+void delay_ms(UINT32 dly) {
 	UINT32 start_millis = millis;
-	while ((millis - start_millis) < ms);
+	while ((millis - start_millis) < dly);
 }
 
 #endif

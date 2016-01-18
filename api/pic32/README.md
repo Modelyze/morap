@@ -3,8 +3,12 @@ This is an api with an implementation of the motors on a pic32 microcontroller.
 
 This api contains two parts, I2C drivers for the PIC32 and drivers for using this library to communicate with the motors. It also contains drivers for individual end-effectors.
 
+Also, if using the uno32 development board jumper JP6 and JP8 needs to be set to the lower position as visualized below. This is to connect the I2C lines to the chip.
+
+![uno32 jumpers](../../img/uno32_jumpers.JPG)
+
 ## How to Use
-Include ```modular_arms.h```  into your project:
+Include `modular_arms.h`  into your project:
 ```c
 #include "modular_arms.h"
 ```
@@ -12,7 +16,7 @@ Initiate the arm by calling:
 ```c
 init_arm(GetPeripheralClock());
 ```
-Where ```GetPeripheralClock()``` is a macro defining the peripheral clock speed in Hz.
+Where `GetPeripheralClock()` is a macro defining the peripheral clock speed in Hz.
 
 When the arm is initiated you can start issuing commands to it.
 
@@ -20,19 +24,19 @@ Before the arm can start being controlled the encoders of each individual motors
 ```c
 calibrate_encoder_zero(node_id);
 ```
-Where ```node_id``` is a variable corresponding to the id-number of the motor you want to calibrate. Each individual motor has it's unique id ranging from 0 to 7. When calling this the node assumes that you have physically oriented the motors to point in the direction you want to define as having an angle of 0 radians.
+Where `node_id` is a variable corresponding to the id-number of the motor you want to calibrate. Each individual motor has it's unique id ranging from 0 to 7. When calling this the node assumes that you have physically oriented the motors to point in the direction you want to define as having an angle of 0 radians.
 
 When all the motors are calibrated they can start being used. There are several ways to control these motors, the most useful being the position control. To position a motor at a specific angle you can call:
 ```c
 set_angle(node_id,target_angle);
 ```
-Where ```target_angle``` is the angle radians at which the motor positions itself.
+Where `target_angle` is the angle radians at which the motor positions itself.
 
 There's also a built in speed feedback controller which can be called by:
 ```c
 set_angular_velocity(node_id,target_angular_speed);
 ```
-Where ```target_angular_speed``` is the angular speed in radians/second which the motor will rotate at.
+Where `target_angular_speed` is the angular speed in radians/second which the motor will rotate at.
 
 You can read variables and status messages from the node in a similar way. For example to get the current angle of the motor you can call:
 ```c
@@ -47,7 +51,7 @@ disable_motor(node_id);
 ```
 This turns them of and allows you to rotate the motor freely. 
 
-To re-enable the motors just run a ```set_angle``` or ```set_angular_velocity``` command and it will enable the motors and fulfill that command.
+To re-enable the motors just run a `set_angle` or `set_angular_velocity` command and it will enable the motors and fulfill that command.
 
 If you don't want the motor to rotate at all when disabled a brake can be activated by calling:
 ```c
@@ -55,7 +59,7 @@ enable_brake(node_id);
 ```
 This shorts the leads of the motors, providing high resistance against turning. This will automatically be disabled when the motors are re-enabled, forcing you to reactivate it the next time they're disabled.
 
-Alternatively the motors can be turned of by setting the encoder status of the motors to unknown by calling:
+Alternatively the motors can be turned off by setting the encoder status of the motors to unknown by calling:
 ```c
 set_calibration_status_unknown(node_id);
 ```
@@ -92,7 +96,7 @@ if (prog_status == MOTOR_CONTROL_PROGRAMMING_STATUS_SUCCESS) {
   //SUCCESS
 }
 ```
-This will tune the speed controller that is called when using the command ```set_angular_velocity()```, allowing you to fine tune responses.
+This will tune the speed controller that is called when using the command `set_angular_velocity()`, allowing you to fine tune responses.
 
 The default controller parameters can be recalled using the command:
 ```c
