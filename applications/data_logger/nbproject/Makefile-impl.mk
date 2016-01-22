@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=data_logger.X
+PROJECTNAME=data_logger
 
 # Active Configuration
 DEFAULTCONF=default
