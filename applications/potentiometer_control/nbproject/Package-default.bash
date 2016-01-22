@@ -10,9 +10,9 @@ CND_CONF=default
 CND_DISTDIR=dist
 TMPDIR=build/${CND_CONF}/${IMAGE_TYPE}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=dist/${CND_CONF}/${IMAGE_TYPE}/pot_control.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
-OUTPUT_BASENAME=pot_control.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
-PACKAGE_TOP_DIR=potcontrol.x/
+OUTPUT_PATH=dist/${CND_CONF}/${IMAGE_TYPE}/potentiometer_control.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+OUTPUT_BASENAME=potentiometer_control.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+PACKAGE_TOP_DIR=potentiometercontrol/
 
 # Functions
 function checkReturnCode
@@ -57,15 +57,15 @@ mkdir -p ${TMPDIR}
 
 # Copy files and create directories and links
 cd "${TOP}"
-makeDirectory ${TMPDIR}/potcontrol.x/bin
+makeDirectory ${TMPDIR}/potentiometercontrol/bin
 copyFileToTmpDir "${OUTPUT_PATH}" "${TMPDIR}/${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}" 0755
 
 
 # Generate tar file
 cd "${TOP}"
-rm -f ${CND_DISTDIR}/${CND_CONF}/package/potcontrol.x.tar
+rm -f ${CND_DISTDIR}/${CND_CONF}/package/potentiometercontrol.tar
 cd ${TMPDIR}
-tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/package/potcontrol.x.tar *
+tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/package/potentiometercontrol.tar *
 checkReturnCode
 
 # Cleanup

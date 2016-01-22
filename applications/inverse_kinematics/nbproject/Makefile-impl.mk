@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=inverse_kinematics.X
+PROJECTNAME=inverse_kinematics
 
 # Active Configuration
 DEFAULTCONF=default

@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=pot_control.X
+PROJECTNAME=potentiometer_control
 
 # Active Configuration
 DEFAULTCONF=default
