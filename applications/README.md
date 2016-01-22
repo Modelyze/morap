@@ -6,7 +6,7 @@ Some applications are provided here.
 
 [Potentiometer control](./potentiometer_control) is a simple application in which pressing a button turns on/off up to two motors. When they're on each motor can be controlled by a separate potentiometer.
 
-[Draw test](./draw_test) performs a simple control sequence in which it positions an optional pen end effector at three different angles and paints one dot. This allows the user to evaluate the repeatability of the system and identify eventual drift in the encoders. If two motors are found on the system it will use both for the control sequence.
+[Draw test](./draw_test) performs a simple control sequence in which it positions an optional pen end-effector at three different angles and paints one dot. This allows the user to evaluate the repeatability of the system and identify eventual drift in the encoders. If two motors are found on the system it will use both for the control sequence.
 
 [Data logger](./data_logger) is used to generate logging data used for parameter extraction. Log the data arriving from the terminal and run the appropriate [matlab scripts](../joints/dc-motor-joint/software/matlab).
 
