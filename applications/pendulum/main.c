@@ -4,7 +4,7 @@
  *
  * Created on January 18, 2016, 2:13 PM
  *
- * Does inverse kinematics
+ * Does inverted pendulum control
  *
  * Electrical connections (uC loc(uno32 pin)):
  * On board uno32 leds on PORTG6 and PORTF0
@@ -13,15 +13,7 @@
  * BUTTON 1 on PORTD8(2)
  * BUTTON 2 on PORTD9(7)
  *
- * To initiate and exit the inverse kinematics
- * press button 2.
- *
- * To change the id's of the controlled motors
- * change the NODE1_ID and/or NODE2_ID
- * definitions below. To change the lengths of the
- * links change L1 and L2 in main_declarations.h.
- * To change toolpath change the toolpath definition
- * in ik_calc.h to something defined in toolpaths.h.
+ * 
  */
 
 #define _SUPPRESS_PLIB_WARNING  // Removes spam
@@ -31,31 +23,22 @@
 #include <xc.h>
 #include <math.h>
 #include "main_declarations.h"
-#include "../../api/pic32/modular_arms.h" //path to modular_arms.h
+#include "../../api/pic32/modular_arms.h"
+#include "mpu9150.h" //path to modular_arms.h
 
 
 // Configs
 #pragma config FPLLMUL = MUL_20, FPLLIDIV = DIV_2, FPLLODIV = DIV_1, FWDTEN = OFF
 #pragma config POSCMOD = HS, FNOSC = PRIPLL, FPBDIV = DIV_1
-#define SYS_FREQ (80000000L)
 
-// System clocks
-#define GetSystemClock()           (SYS_FREQ)
-#define GetPeripheralClock()       (SYS_FREQ/1)
-#define GetInstructionClock()      (SYS_FREQ)
 
-// Id's of the motors to be controlled
-#define NODE_ID 1
 
-// Sampling rate (Hz)
-#define FS 100
 
 // Global vars
 unsigned char buf[256]; // OUTPUT BUFFER FOR UART
-
-// function prototypes TODO: implement
-void init_gyro();
-//void
+imu_store_struct imu_data; // Store measurements
+imu_raw_store_struct imu_raw_data;
+//imu_store_struct imu_mean_data = {.accX = 0, .accY = 0, .accZ = 0, .gyroX = 0, .gyroY = 0, .gyroZ = 0};
 
 int main(void) {
     // Configure the device for maximum performance but do not change the PBDIV
@@ -75,8 +58,19 @@ int main(void) {
     // SETUP TIMER 1 INTERUPPT!
     // F_tick = (80e6 / Prescaler) / period
     //Open Timer1, 64 Prescaler -> Fclock = 1250000 Hz. With period = 1250 -> tick = 1000 Hz
-    OpenTimer1(T1_ON | T1_PS_1_64 | T1_SOURCE_INT, 1250);
+    UINT16 T1_period;
+    if (FS > 20) {
+        T1_period = (UINT16) ( (GetPeripheralClock()/64L)/((UINT32) FS) );
+        OpenTimer1(T1_ON | T1_PS_1_64 | T1_SOURCE_INT, T1_period);
+    } else {
+        T1_period = (UINT16) ( (GetPeripheralClock()/256L)/((UINT32) FS) );
+        OpenTimer1(T1_ON | T1_PS_1_256 | T1_SOURCE_INT, T1_period);
+    }
     ConfigIntTimer1(T1_INT_ON | T1_INT_PRIOR_2);
+
+
+    // Sets up internal 32-bit timer for delay functions
+    OpenTimer45(T45_ON | T45_PS_1_256, 0xFFFFFFFF);
 
     // init adc
     init_adc();
@@ -85,17 +79,50 @@ int main(void) {
     INIT_LEDS();
     LED4_OFF(); LED5_OFF();
     INIT_SHIELD_LEDS();
+    INIT_PULSE_TRIGGER();
     RED_LED_OFF(); YELLOW_LED_OFF();
     INIT_BUTS();
 
     // INIT the arm
     init_arm(GetPeripheralClock());
 
+    // Waits a while until we start to initialize the IMU
+    // to improve stability
+    INT16 i;
+    for(i = 0; i < 25; i++){
+        delay_ms(100);
+        LED5_SWAP();
+        YELLOW_LED_SWAP();
+    }
+    YELLOW_LED_ON();
+    LED5_OFF();
+
+
+    // Init gyro
+    putsUART1("INITIATES IMU\n\r");
+    PULSE_TRIGGER();
+    UINT8 ig = init_mpu9150();
+    if (ig != I2C_STATUS_SUCCESFUL)
+        putsUART1("------------ IMU-INIT FAILED! ------------\n\r");
+    YELLOW_LED_OFF();
+
+
     // says hello
-    sprintf(buf,"Systems initiated\n\r");
+    sprintf(buf,"Systems initiated (T1 period = %d)\n\r",T1_period);
     putsUART1(buf);
 
+    // test reads imu config register
+    delay_ms(100);
+    UINT8 read_data[2];
+    read_data[0] = MPU9150_GYRO_CONFIG;
+    TransmitData(MPU9150_I2C_ADDRESS,read_data,1);
+    if (ReadData(MPU9150_I2C_ADDRESS,read_data,2) == I2C_STATUS_SUCCESFUL) {
+        sprintf(buf,"gyro: 0x%x\n\raccel: 0x%x\n\r",read_data[0],read_data[1]);
+        putsUART1(buf);
+    }
+
     // Enables interrupts
+    mT1ClearIntFlag();
     INTEnableSystemMultiVectoredInt();
 
 
@@ -105,8 +132,300 @@ int main(void) {
 }
 
 
+// Function prototypes (implemented at bottom)
+float PID_feedback_loop(float th1, float th2, UINT8 reset); // main feedback loop
+void scanI2Cbus(void); // scans bus and prints found addresses
+void potControl(void);
+
+// Different modes
+//#define DISP_RAW_MEAN_DATA
+//#define DISP_MEASUREMENT_ANGLE
+//#define DISP_KALMAN_FILTER
+#define FEEDBACK_CONTROL
+//#define POT_CONTROL
 // Timer 1 interrupt routine
 void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     mT1ClearIntFlag();
-    // timer 1 interrupt for pendulum control
+    static UINT32 cnt = 0;
+    static UINT8 kalman_reset = 0;
+    cnt++;
+    //Read imu_data
+    LED5_ON();
+    UINT8 imu_i2c_status = read_imu_data(&imu_data), mtr_i2c_status;
+    LED5_OFF();
+
+
+
+
+#ifdef FEEDBACK_CONTROL
+    // Control states
+#define CONTROL_STATE_PASSIVE 0
+#define CONTROL_STATE_SWITCHING 1
+#define CONTROL_STATE_ACTIVE 2
+    // Activation angles
+#define SWITCH_TO_ACTIVE_ACTIVATION_TIME (2*FS)
+#define TH2_ACTIVATION_ANGLE 0.1
+#define TH2_DEACTIVATION_ANGLE (M_PI/6.0)
+#define TH1_DEACTIVATION_ANGLE (1.4*M_PI)
+    
+    static UINT8 control_state = CONTROL_STATE_PASSIVE;
+    static UINT16 switch_count = 0;
+    static float th2, th1, ref_vel;
+    if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
+        if (kalman_reset == 1) putsUART1("Resetting kalman filter!\n\r");
+        th2 = kalman_filtering(&imu_data,&kalman_reset);
+        LED5_ON();
+        mtr_i2c_status = get_angle(NODE_ID,&th1);
+        LED5_OFF();
+
+        // State driven
+        switch (control_state) {
+            case CONTROL_STATE_PASSIVE:
+                YELLOW_LED_OFF();
+                if (fabsf(th2) < TH2_ACTIVATION_ANGLE ) {
+                    control_state = CONTROL_STATE_SWITCHING;
+                    switch_count = 0;
+                }
+                break;
+            case CONTROL_STATE_SWITCHING:
+                if ( (switch_count % (FS/10)) == 0) {
+                    YELLOW_LED_SWAP();
+                }
+                if (switch_count >= SWITCH_TO_ACTIVE_ACTIVATION_TIME ) {
+                    YELLOW_LED_ON();
+                    LED5_ON();
+                    if (calibrate_encoder_zero(NODE_ID) == I2C_STATUS_SUCCESFUL) {
+                        putsUART1("ACTIVATING MOTOR\n\r");
+                        ref_vel = PID_feedback_loop(0.0,th2,1); // Resets pid loop
+                        control_state = CONTROL_STATE_ACTIVE;
+                    } else {
+                        putsUART1("NO MOTOR FOUND\n\r");
+                        control_state = CONTROL_STATE_PASSIVE;
+                    }
+                    LED5_OFF();
+                }
+                if (fabsf(th2) > TH2_ACTIVATION_ANGLE) {
+                    YELLOW_LED_OFF();
+                    control_state = CONTROL_STATE_PASSIVE;
+                }
+                switch_count++;
+                break;
+            case CONTROL_STATE_ACTIVE:
+                // PID CONTROL
+                ref_vel = PID_feedback_loop(th1,th2,0);
+                LED5_ON(); PULSE_TRIGGER();
+                mtr_i2c_status = set_angular_velocity(NODE_ID, ref_vel);
+                LED5_OFF();
+
+                // Exit state if any of these conditions are fulfilled
+                if (mtr_i2c_status != I2C_STATUS_SUCCESFUL || fabsf(th2) > TH2_DEACTIVATION_ANGLE || fabsf(th1) > TH1_DEACTIVATION_ANGLE) {
+                    
+                    // disable motor
+                    LED5_ON();
+                    set_calibration_status_unknown(NODE_ID);
+                    LED5_OFF();
+                    control_state = CONTROL_STATE_PASSIVE;
+                    YELLOW_LED_OFF();
+                    putsUART1("QUITTING CONTROL\n\r");
+                }
+                break;
+        } // switch(control_state)
+        
+        // Print info every now and then
+        if (cnt % (FS/4) == 0) {
+            sprintf(buf,"th1 = %0.3f deg, th2 = %0.3f deg, ref_vel = %0.2f rad/s (abs acc = %0.2fg)\n\r",\
+            RAD_TO_DEG(th1), RAD_TO_DEG(th2),ref_vel,get_abs_acc(&imu_data) );
+            putsUART1(buf);
+        }
+
+        RED_LED_OFF();
+    } else {
+        kalman_reset = 1;
+        control_state = CONTROL_STATE_PASSIVE;
+        RED_LED_ON();
+    }
+    // MANUAL OVERRIDE
+    if (GET_BUT1() || GET_BUT2()) {
+        // disable motor
+        set_calibration_status_unknown(NODE_ID);
+        control_state = CONTROL_STATE_PASSIVE;
+        YELLOW_LED_OFF();
+    }
+#endif
+#ifdef DISP_KALMAN_FILTER
+    if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
+#ifndef FEEDBACK_CONTROL
+        if (kalman_reset == 1) putsUART1("Resetting kalman filter!\n\r");
+        float th2 = kalman_filtering(&imu_data,&kalman_reset);
+#endif
+        if(cnt % (FS/4) == 0) {
+            float rate = get_control_signal(&imu_data);
+            sprintf(buf,"a = %0.3f deg (abs acc = %0.2fg, rate = %0.2f deg/s)\n\r",\
+                    RAD_TO_DEG(th2),get_abs_acc(&imu_data),RAD_TO_DEG(rate) );
+            putsUART1(buf);
+        }
+        RED_LED_OFF();
+    } else {
+        kalman_reset = 1;
+        RED_LED_ON();
+    }
+#endif
+#ifdef DISP_MEASUREMENT_ANGLE
+    if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
+        if(cnt % (FS/4) == 0) {
+            sprintf(buf,"a = %0.3f deg (abs acc = %0.2fg)\n\r",RAD_TO_DEG(get_measurement(&imu_data)),get_abs_acc(&imu_data));
+            putsUART1(buf);
+        }
+    }
+#endif
+#ifdef DISP_SENSOR_DATA
+    // Disp data in terminal
+    if(cnt % (FS/2) == 0) {
+        if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
+            sprintf(buf,"aX = %0.6f g, aY = %0.6f g, aZ = %0.6f g\n\r",imu_data.accX,imu_data.accY,imu_data.accZ);
+            putsUART1(buf);
+            sprintf(buf,"gX = %0.4f dg/s, gY = %0.4f dg/s, gZ = %0.4f dg/s\n\r",\
+                    RAD_TO_DEG(imu_data.gyroX),RAD_TO_DEG(imu_data.gyroY),RAD_TO_DEG(imu_data.gyroZ)  );
+            putsUART1(buf);
+            sprintf(buf,"temp = %0.3f C\n\r",imu_data.temp);
+            putsUART1(buf);
+            putsUART1("-------\n\r");
+        }
+    }
+#endif
+#ifdef DISP_RAW_MEAN_DATA
+    // Store mean datas for comparisons
+    static UINT16 imu_mean_count = 0;
+    static INT32 accXmean = 0,accYmean = 0,accZmean = 0;
+    static INT32 gyroXmean = 0,gyroYmean = 0,gyroZmean = 0;
+    if (read_raw_imu_data(&imu_raw_data) == I2C_STATUS_SUCCESFUL) {
+        accXmean += ((INT32) imu_raw_data.accX);
+        accYmean += ((INT32) imu_raw_data.accY);
+        accZmean += ((INT32) imu_raw_data.accZ);
+        gyroXmean += ((INT32) imu_raw_data.gyroX);
+        gyroYmean += ((INT32) imu_raw_data.gyroY);
+        gyroZmean += ((INT32) imu_raw_data.gyroZ);
+        imu_mean_count++;
+    }
+    if (imu_mean_count == 256) {
+        accXmean = accXmean/imu_mean_count; accYmean = accYmean/imu_mean_count;
+        accZmean = accZmean/imu_mean_count; gyroXmean = gyroXmean/imu_mean_count;
+        gyroYmean = gyroYmean/imu_mean_count; gyroZmean = gyroZmean/imu_mean_count;
+        sprintf(buf,"aX = %d, aY = %d, aZ = %d\n\r",accXmean,accYmean,accZmean);
+        putsUART1(buf);
+        sprintf(buf,"gX = %d, gY = %d, gZ = %d\n\r",gyroXmean,gyroYmean,gyroZmean);
+        putsUART1(buf);
+        putsUART1("------------\n\r");
+        accXmean = 0; accYmean = 0; accZmean = 0;
+        gyroXmean = 0; gyroYmean = 0; gyroZmean = 0;
+        imu_mean_count = 0;
+    }
+#endif
+#ifdef POT_CONTROL
+    potControl();
+#endif
+
+
+    if(cnt % (2*FS) == 0) {
+        LED4_SWAP();
+        //scanI2Cbus();
+    }
+}
+
+float PID_feedback_loop(float th1, float th2, UINT8 reset) {
+    // PID-constants for keeping the pendulum straight up
+    const float P_pend = 10.0, I_pend = 0.0, D_pend = 2.0;
+    // Working variables for pendulum balancing
+    static float th2_ref = 0.0, err_pend, err_cum_pend = 0.0, old_th2 = 0.0;
+
+    if (reset) {
+        th2_ref = 0.0;
+        err_pend = 0.0;
+        err_cum_pend = 0.0;
+        old_th2 = th2;
+        return 0.0;
+    }
+
+    // Pendulum balancing
+    err_pend = (th2 - th2_ref);
+    err_cum_pend += err_pend*TS;
+    float output = P_pend*err_pend + I_pend*err_cum_pend + D_pend*(th2 - old_th2)/TS;
+    old_th2 = th2;
+    return output;
+}
+
+void scanI2Cbus(void) {
+    UINT8 add, found=0;
+    for (add = 0b0001000; add < 0b1111000; add++) {
+        if (PokeAddress(add) == I2C_STATUS_SUCCESFUL) {
+            found++;
+            sprintf(buf,"Found I2C device at address 0x%x\n\r",add);
+            putsUART1(buf);
+        }
+    }
+    if (found == 0) {
+        putsUART1("No devices found on the i2c line\n\r");
+    } else {
+        putsUART1("---\n\r");
+    }
+}
+
+// Direct feedback control using a potentiometer
+void potControl(void) {
+//#define MODE_SPEED_FEEDBACK
+    static UINT32 cnt = 0; // Incremented variables used for timing
+
+    // Motor status variables
+    static UINT8 motor1_status = MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED;
+    static UINT8 motor_i2c_status = 1;
+
+    // Check if button 1 is pressed, if enable/disable the motors
+    static UINT8 but1_pressed = 0;
+    static UINT32 prev_but1_cnt = 0;
+    if (GET_BUT1() && !but1_pressed && (cnt-prev_but1_cnt > 5) ) {
+        // Init/exit motor 1
+        if (motor_i2c_status == I2C_STATUS_SUCCESFUL) {
+            if( motor1_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
+                set_calibration_status_unknown(NODE_ID);
+                putsUART1("Motor 1 disabled\n\r");
+            } else {
+                calibrate_encoder_zero(NODE_ID);
+                putsUART1("Motor 1 enabled\n\r");
+            }
+        } else {
+            sprintf(buf,"Motor 1 with id %d not found on the bus\n\r",NODE_ID);
+            putsUART1(buf);
+        }
+
+
+        // Debouncing and making sure the button only is pressed once
+        // so holding it down doesn't call this function repeatedly
+        prev_but1_cnt = cnt;
+        but1_pressed = 1;
+    } else if (!GET_BUT1() && but1_pressed && (cnt-prev_but1_cnt > 5)) {
+        but1_pressed = 0;
+        prev_but1_cnt = cnt;
+    }
+
+    // Read motor status
+    LED5_ON();
+    motor_i2c_status = get_status(NODE_ID,&motor1_status);
+    LED5_OFF();
+
+    // Send references to motors if they're enabled
+    float send_value;
+    if (motor_i2c_status == I2C_STATUS_SUCCESFUL && motor1_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
+#ifdef MODE_SPEED_FEEDBACK
+        send_value = (((float)read_adc(A0))-512)*6.2831/512; // +- 360 deg/s
+        motor_i2c_status = set_angular_velocity(NODE_ID,send_value);
+#else
+        send_value = (((float)read_adc(A0))-512)*1.5708/512; // +- 90 degrees
+        LED5_ON();
+        motor_i2c_status = set_angle(NODE_ID,send_value);
+        LED5_OFF();
+#endif
+        RED_LED_ON();
+    } else RED_LED_OFF();
+
+    cnt++;
 }

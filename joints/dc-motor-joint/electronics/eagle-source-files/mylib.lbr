@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.01" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -380,6 +380,47 @@
 <wire x1="-4" y1="-5" x2="4" y2="-5" width="0.127" layer="51"/>
 <wire x1="4" y1="-5" x2="4" y2="-2.3" width="0.127" layer="51"/>
 </package>
+<package name="SO14">
+<description>&lt;b&gt;Small Outline Package 14&lt;/b&gt;</description>
+<wire x1="4.305" y1="-1.9" x2="-4.305" y2="-1.9" width="0.2032" layer="51"/>
+<wire x1="-4.305" y1="-1.9" x2="-4.305" y2="-1.4" width="0.2032" layer="51"/>
+<wire x1="-4.305" y1="-1.4" x2="-4.305" y2="1.9" width="0.2032" layer="51"/>
+<wire x1="4.305" y1="-1.4" x2="-4.305" y2="-1.4" width="0.2032" layer="51"/>
+<wire x1="4.305" y1="1.9" x2="4.305" y2="-1.4" width="0.2032" layer="51"/>
+<wire x1="4.305" y1="-1.4" x2="4.305" y2="-1.9" width="0.2032" layer="51"/>
+<wire x1="-4.305" y1="1.9" x2="4.305" y2="1.9" width="0.2032" layer="51"/>
+<smd name="2" x="-2.54" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="13" x="-2.54" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="1" x="-3.81" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="3" x="-1.27" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="4" x="0" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="14" x="-3.81" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="12" x="-1.27" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="11" x="0" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="6" x="2.54" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="9" x="2.54" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="5" x="1.27" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="7" x="3.81" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="10" x="1.27" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="8" x="3.81" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<text x="-4.572" y="-1.905" size="1.27" layer="25" rot="R90">&gt;NAME</text>
+<text x="5.842" y="-1.905" size="1.27" layer="27" rot="R90">&gt;VALUE</text>
+<rectangle x1="-4.055" y1="-3.1" x2="-3.565" y2="-2" layer="51"/>
+<rectangle x1="-2.785" y1="-3.1" x2="-2.295" y2="-2" layer="51"/>
+<rectangle x1="-1.515" y1="-3.1" x2="-1.025" y2="-2" layer="51"/>
+<rectangle x1="-0.245" y1="-3.1" x2="0.245" y2="-2" layer="51"/>
+<rectangle x1="-0.245" y1="2" x2="0.245" y2="3.1" layer="51"/>
+<rectangle x1="-1.515" y1="2" x2="-1.025" y2="3.1" layer="51"/>
+<rectangle x1="-2.785" y1="2" x2="-2.295" y2="3.1" layer="51"/>
+<rectangle x1="-4.055" y1="2" x2="-3.565" y2="3.1" layer="51"/>
+<rectangle x1="1.025" y1="-3.1" x2="1.515" y2="-2" layer="51"/>
+<rectangle x1="2.295" y1="-3.1" x2="2.785" y2="-2" layer="51"/>
+<rectangle x1="3.565" y1="-3.1" x2="4.055" y2="-2" layer="51"/>
+<rectangle x1="3.565" y1="2" x2="4.055" y2="3.1" layer="51"/>
+<rectangle x1="2.295" y1="2" x2="2.785" y2="3.1" layer="51"/>
+<rectangle x1="1.025" y1="2" x2="1.515" y2="3.1" layer="51"/>
+<circle x="-3.556" y="-0.762" radius="0.359209375" width="0.127" layer="21"/>
+</package>
 </packages>
 <symbols>
 <symbol name="PIC24FV32KA304">
@@ -672,6 +713,28 @@ Current sense utgång</description>
 <wire x1="-5.08" y1="7.62" x2="-5.08" y2="0" width="0.254" layer="94"/>
 <pin name="IN" x="0" y="-5.08" visible="off" length="middle" rot="R90"/>
 <text x="0" y="2.54" size="1.778" layer="94" align="bottom-center">IN</text>
+</symbol>
+<symbol name="LM339">
+<description>LM339 type voltage comparator with open collector output</description>
+<pin name="OUT2" x="-15.24" y="7.62" length="middle"/>
+<pin name="OUT1" x="-15.24" y="5.08" length="middle"/>
+<pin name="V+" x="-15.24" y="2.54" length="middle"/>
+<pin name="IN1-" x="-15.24" y="0" length="middle"/>
+<pin name="IN1+" x="-15.24" y="-2.54" length="middle"/>
+<pin name="IN2-" x="-15.24" y="-5.08" length="middle"/>
+<pin name="IN2+" x="-15.24" y="-7.62" length="middle"/>
+<pin name="IN3-" x="15.24" y="-7.62" length="middle" rot="R180"/>
+<pin name="IN3+" x="15.24" y="-5.08" length="middle" rot="R180"/>
+<pin name="IN4-" x="15.24" y="-2.54" length="middle" rot="R180"/>
+<pin name="IN4+" x="15.24" y="0" length="middle" rot="R180"/>
+<pin name="GND" x="15.24" y="2.54" length="middle" rot="R180"/>
+<pin name="OUT4" x="15.24" y="5.08" length="middle" rot="R180"/>
+<pin name="OUT3" x="15.24" y="7.62" length="middle" rot="R180"/>
+<wire x1="-10.16" y1="10.16" x2="10.16" y2="10.16" width="0.254" layer="94"/>
+<wire x1="10.16" y1="10.16" x2="10.16" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="10.16" y1="-10.16" x2="-10.16" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="-10.16" x2="-10.16" y2="10.16" width="0.254" layer="94"/>
+<text x="0" y="-12.7" size="1.778" layer="94" align="bottom-center">LM339</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -1073,6 +1136,35 @@ Arduino type shield for the chipkit uno32</description>
 <device name="" package="LABBHYLSA">
 <connects>
 <connect gate="G$1" pin="IN" pad="IN IN2"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="LM339">
+<description>LM339 voltage comparator with open collector outputs</description>
+<gates>
+<gate name="G$1" symbol="LM339" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SO14">
+<connects>
+<connect gate="G$1" pin="GND" pad="12"/>
+<connect gate="G$1" pin="IN1+" pad="5"/>
+<connect gate="G$1" pin="IN1-" pad="4"/>
+<connect gate="G$1" pin="IN2+" pad="7"/>
+<connect gate="G$1" pin="IN2-" pad="6"/>
+<connect gate="G$1" pin="IN3+" pad="9"/>
+<connect gate="G$1" pin="IN3-" pad="8"/>
+<connect gate="G$1" pin="IN4+" pad="11"/>
+<connect gate="G$1" pin="IN4-" pad="10"/>
+<connect gate="G$1" pin="OUT1" pad="2"/>
+<connect gate="G$1" pin="OUT2" pad="1"/>
+<connect gate="G$1" pin="OUT3" pad="14"/>
+<connect gate="G$1" pin="OUT4" pad="13"/>
+<connect gate="G$1" pin="V+" pad="3"/>
 </connects>
 <technologies>
 <technology name=""/>

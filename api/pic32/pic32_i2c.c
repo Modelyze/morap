@@ -10,6 +10,13 @@
 
 UINT32 InitI2C(UINT32 system_clock, UINT32 i2c_clock)
 {
+    // Set clock and data (RG2, RG3) output high to remove reset errors:
+    TRISGCLR = (1 << 2) | (1 << 3); // SET OUTPUT
+    PORTGSET = (1 << 2) | (1 << 3); // SET HIGH
+    PORTGCLR = (1 << 2) | (1 << 3); // SET LOW
+    TRISGSET = (1 << 2) | (1 << 3); // SET BACK AS INPUT
+
+
     // Set the I2C baudrate
     //I2CConfigure(ACTIVE_I2C_BUS, I2C_EN);
     UINT32 actualClock = I2CSetFrequency(ACTIVE_I2C_BUS, system_clock, i2c_clock);
@@ -24,6 +31,21 @@ UINT32 InitI2C(UINT32 system_clock, UINT32 i2c_clock)
     return actualClock;
 }
 
+void ResetI2C() {
+    I2CEnable(ACTIVE_I2C_BUS, FALSE); // Disable I2C module
+    TRISGCLR = (1 << 2); // SET CLOCK AS OUTPUT
+    int i,j;
+    for (i = 0; i < 30; i++) {
+        PORTGINV = (1 << 2); // Pulse clock
+        for(j = 0; j < 100; j++); // small delay
+    }
+    PORTGCLR = (1 << 2); // Set low
+    TRISGCLR = (1 << 3); // Set data as output
+    PORTGSET = (1 << 3);
+    PORTGCLR = (1 << 3); // line to clear eventual hold ups
+    TRISGSET = (1 << 2) | (1 << 3); // Set back as inputs
+    I2CEnable(ACTIVE_I2C_BUS, TRUE); // Reenable I2C module
+}
 
 BOOL StartTransfer( BOOL restart )
 {
@@ -97,7 +119,7 @@ void StopTransfer( void )
     3 - Collision occured during start
     4 - Failed to transmit
     5 - I2C receiver overflow
- * 
+ *
  */
 
 UINT8 TransmitData(UINT8 address, UINT8* data, UINT8 datasize)

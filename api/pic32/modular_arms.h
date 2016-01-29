@@ -72,15 +72,6 @@
 #define I2C_TURN_OFF_LED                    253
 #define I2C_SWAP_LED                        254
 
-
-// I2C status messages
-#define I2C_STATUS_SUCCESFUL            0
-#define I2C_STATUS_NACK_ADDRESS         1
-#define I2C_STATUS_NACK_DATA            2
-#define I2C_STATUS_COLLISION            3
-#define I2C_STATUS_FAILED               4
-#define I2C_STATUS_RECEIVER_OVERFLOW    5
-
 // Motor status
 #define MOTOR_STATUS_ENABLED                    1
 #define MOTOR_STATUS_DISABLED                   2

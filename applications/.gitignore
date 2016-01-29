@@ -1,0 +1,12 @@
+draw_test/build/
+draw_test/dist/
+draw_test/nbproject/private/
+inverse_kinematics/build/
+inverse_kinematics/dist/
+inverse_kinematics/nbproject/private/
+pendulum/build/
+pendulum/dist/
+pendulum/nbproject/private/
+potentiometer_control/build/
+potentiometer_control/dist/
+potentiometer_control/nbproject/private/

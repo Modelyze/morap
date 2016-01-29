@@ -17,7 +17,7 @@ void init_arm(UINT32 system_peripheral_clock) {
         sprintf(buf,"Error: I2C1 clock frequency (%u) error exceeds 10%%.\n\r", (unsigned)actualClock);
         putsUART1(buf);
     }
-#endif    
+#endif
 }
 
 
@@ -103,7 +103,7 @@ UINT8 node_write_byte(UINT8 address, UINT8 command, UINT8 write_data) {
         putsUART1(buf); }
 #endif
     return i2c_status;
-    
+
 }
 
 // Writes a float to the controller
@@ -226,7 +226,7 @@ UINT8 program_control_params(UINT8 node_id, control_params_struct* new_params) {
         sprintf(buf,"Error: Failed to transmit to motor when programming control params, error code: %d.\n\r", i2c_status);
         putsUART1(buf); }
 #endif
-    
+
     return i2c_status;
 }
 

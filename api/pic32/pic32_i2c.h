@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pic32_i2c.h
  * Author: Viktor Kozma
  *
@@ -12,6 +12,14 @@
 #define	PIC32_I2C_H
 
 #define ACTIVE_I2C_BUS              I2C1
+
+// I2C status messages
+#define I2C_STATUS_SUCCESFUL            0
+#define I2C_STATUS_NACK_ADDRESS         1
+#define I2C_STATUS_NACK_DATA            2
+#define I2C_STATUS_COLLISION            3
+#define I2C_STATUS_FAILED               4
+#define I2C_STATUS_RECEIVER_OVERFLOW    5
 
 /*******************************************************************************
   Function:
@@ -44,6 +52,12 @@
      This only needs to be called once
   *****************************************************************************/
 UINT32 InitI2C(UINT32 system_clock, UINT32 i2c_clock);
+
+/*
+ * Resets the I2C bus by manually pulsing the clock line in order to
+ * free eventual hold ups
+ */
+void ResetI2C();
 
 /*******************************************************************************
   Function:

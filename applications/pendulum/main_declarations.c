@@ -40,9 +40,17 @@ UINT16 read_adc(UINT8 channel) {
     return ReadADC10(0);
 }
 
-void delay_ms(UINT32 dly) {
-	UINT32 start_millis = millis;
-	while ((millis - start_millis) < dly);
+void delay_ms(UINT32 ms) {
+    WriteTimer45(0);
+    UINT32 write_to_value =  (UINT32) ( ((float)ms)*((float) GetPeripheralClock())/256.0/1000.0 );
+    while(ReadTimer45() < write_to_value);
+}
+
+void delay_us(UINT32 us) {
+    WriteTimer45(0);
+    UINT32 write_to_value =  (UINT32) ( ((float)us)*((float) GetPeripheralClock())/256.0/1000000.0 );
+    while(ReadTimer45() < write_to_value);
+
 }
 
 #endif

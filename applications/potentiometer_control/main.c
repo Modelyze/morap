@@ -40,6 +40,10 @@
 #define NODE1_ID 1
 #define NODE2_ID 2
 
+// Position or velociy feedback
+//#define MODE_SPEED_FEEDBACK
+#define MODE_POSITION_FEEDBACK
+
 // Clock reading functions used with the above config
 #define GetSystemClock()           (SYS_FREQ)
 #define GetPeripheralClock()       (SYS_FREQ/1)
@@ -161,7 +165,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     static UINT8 motor1_i2c_status = 1, motor2_i2c_status = 1;
 
     // Check if button 1 is pressed, if enable/disable the motors
-    static UINT8 but1_pressed;
+    static UINT8 but1_pressed = 0;
     static UINT32 prev_but1_cnt = 0;
     if (GET_BUT1() && !but1_pressed && (cnt-prev_but1_cnt > 5) ) {
         // Init/exit motor 1
@@ -204,19 +208,31 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     }
 
     // Read motor status
+    LED5_ON();
     motor1_i2c_status = get_status(NODE1_ID,&motor1_status);
     motor2_i2c_status = get_status(NODE2_ID,&motor2_status);
+    LED5_OFF();
 
     // Send references to motors if they're enabled
     float send_value;
     if (motor1_i2c_status == I2C_STATUS_SUCCESFUL && motor1_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
+#ifdef MODE_SPEED_FEEDBACK
+        send_value = (((float)read_adc(A0))-512)*6.2831/512; // +- 360 deg/s
+        motor1_i2c_status = set_angular_velocity(NODE1_ID,send_value);
+#else
         send_value = (((float)read_adc(A0))-512)*1.5708/512; // +- 90 degrees
         motor1_i2c_status = set_angle(NODE1_ID,send_value);
+#endif
         RED_LED_ON();
     } else RED_LED_OFF();
     if (motor2_i2c_status == I2C_STATUS_SUCCESFUL && motor2_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
+#ifdef MODE_SPEED_FEEDBACK
+        send_value = (((float)read_adc(A1))-512)*6.2831/512; // +- 360 deg/s
+        motor2_i2c_status = set_angular_velocity(NODE2_ID,send_value);
+#else
         send_value = (((float)read_adc(A1))-512)*1.5708/512; // +- 90 degrees
         motor2_i2c_status = set_angle(NODE2_ID,send_value);
+#endif
         YELLOW_LED_ON();
     } else YELLOW_LED_OFF();
 

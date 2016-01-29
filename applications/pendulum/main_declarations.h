@@ -12,12 +12,26 @@
 #ifndef MAIN_DECLARATIONS_H
 #define	MAIN_DECLARATIONS_H
 
+// Sampling frequency
+
+// Id's of the motors to be controlled
+#define NODE_ID 1
+
+// Sampling rate (Hz)
+#define FS 100
+#define TS (1.0/((float) FS))
+
 // Lengths of each individual arms
-#define L1 0.257
-#define L2 0.380
+#define L1 0.257 // Main arm
+#define L2 0.380 // Pendulum
 
 // SYS FREQ
 #define SYS_FREQ (80000000L)
+
+// System clocks
+#define GetSystemClock()           (SYS_FREQ)
+#define GetPeripheralClock()       (SYS_FREQ/1)
+#define GetInstructionClock()      (SYS_FREQ)
 
 // ONBOARD LEDS
 #define INIT_LEDS() (TRISGCLR = 1 << 6, TRISFCLR = 1)
@@ -62,13 +76,14 @@ void init_adc(void);
 #define A1 1
 UINT16 read_adc(UINT8 channel);
 
+
 /*
-* Small delay in milliseconds
-*/
-void delay_ms(UINT32 dly);
+ * User timer 45 to delay
+ */
+void delay_ms(UINT32 ms);
+void delay_us(UINT32 us);
 
 // Global variables
 extern unsigned char buf[256];//, i2c_status;
-extern volatile unsigned long int millis;
 
 #endif	/* MAIN_DECLARATIONS_H */

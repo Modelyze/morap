@@ -40,3 +40,5 @@ The cabling between each node has a female 6 pin connector with 3.96mm raster in
 
 ## Additional Electronics
 Source files for a power shield for a uno32 master controller is also available. This is equipped with a input for 2x 4mm laboratory cables with two connections for cabling compatible with the joints.
+
+An early version of an improved node board is also located here. This includes numerous improvements, such as using an LM339 voltage comparator to provide a more robust interface for reading the encoder. Another intended improvement is zoning which aims to isolate the motor driver from the rest of the circuit, which should reduce the electrical noise plaguing the current version.
