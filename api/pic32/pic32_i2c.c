@@ -10,7 +10,7 @@
 
 UINT32 InitI2C(UINT32 system_clock, UINT32 i2c_clock)
 {
-    // Set clock and data (RG2, RG3) output high to remove reset errors:
+    // Set clock and data lines (RG2, RG3) output high to remove reset errors:
     TRISGCLR = (1 << 2) | (1 << 3); // SET OUTPUT
     PORTGSET = (1 << 2) | (1 << 3); // SET HIGH
     PORTGCLR = (1 << 2) | (1 << 3); // SET LOW
@@ -124,14 +124,14 @@ void StopTransfer( void )
 
 UINT8 TransmitData(UINT8 address, UINT8* data, UINT8 datasize)
 {
-    UINT8 status = 0, idata;
+    UINT8 status = I2C_STATUS_SUCCESFUL, idata;
 
     UINT8 SendAddress = address << 1 | 0; // Write
     // Start the transfer
     if( !StartTransfer(FALSE) )
     {
         // Error: Collision during start
-        status = 3;
+        status = I2C_STATUS_COLLISION;
         return status;
     }
     // Transmit the address
@@ -141,14 +141,14 @@ UINT8 TransmitData(UINT8 address, UINT8* data, UINT8 datasize)
         if(!I2CByteWasAcknowledged(ACTIVE_I2C_BUS))
         {
             // Error: Sent address was not acknowledged
-            status = 1;
+            status = I2C_STATUS_NACK_ADDRESS;
             datasize = 0;
         }
     }
     else
     {
         // Error: Failed to transmit
-        status = 4;
+        status = I2C_STATUS_FAILED;
         datasize = 0;   // Don't bother
     }
 
@@ -160,13 +160,13 @@ UINT8 TransmitData(UINT8 address, UINT8* data, UINT8 datasize)
             if(!I2CByteWasAcknowledged(ACTIVE_I2C_BUS))
             {
                 // Error: Sent data byte was not acknowledged
-                status = 2;
+                status = I2C_STATUS_NACK_DATA;
             }
         }
         else
         {
             // Error: Failed to transmit
-            status = 4;
+            status = I2C_STATUS_FAILED;
             datasize = 0;   // Don't bother
         }
     }
@@ -179,14 +179,14 @@ UINT8 TransmitData(UINT8 address, UINT8* data, UINT8 datasize)
 
 UINT8 ReadData(UINT8 address, UINT8* databuf, UINT8 datasize)
 {
-    UINT8 status = 0, idata;
+    UINT8 status = I2C_STATUS_SUCCESFUL, idata;
 
     UINT8 SendAddress = address << 1 | 1;   // Read
     // Start the transfer
     if( !StartTransfer(FALSE) )
     {
         // Error: Collision during start
-        status = 3;
+        status = I2C_STATUS_COLLISION;
         return status;
     }
     // Transmit the address
@@ -196,14 +196,14 @@ UINT8 ReadData(UINT8 address, UINT8* databuf, UINT8 datasize)
         if(!I2CByteWasAcknowledged(ACTIVE_I2C_BUS))
         {
             // Error: Sent byte was not acknowledged
-            status = 1;
+            status = I2C_STATUS_NACK_ADDRESS;
             datasize = 0;
         }
     }
     else
     {
         // Error: Failed to transmit
-        status = 4;
+        status = I2C_STATUS_FAILED;
         datasize = 0;   // Don't bother
     }
 
@@ -212,7 +212,7 @@ UINT8 ReadData(UINT8 address, UINT8* databuf, UINT8 datasize)
         if(I2CReceiverEnable(ACTIVE_I2C_BUS, TRUE) == I2C_RECEIVE_OVERFLOW)
         {
             // Error: I2C Receive Overflow
-            status = 5;
+            status = I2C_STATUS_RECEIVER_OVERFLOW;
         }
         else
         {
@@ -236,14 +236,14 @@ UINT8 ReadData(UINT8 address, UINT8* databuf, UINT8 datasize)
 }
 
 UINT8 PokeAddress(UINT8 address) {
-    UINT8 status = 0;
+    UINT8 status = I2C_STATUS_SUCCESFUL;
 
     UINT8 SendAddress = address << 1 | 0; // Write
     // Start the transfer
     if( !StartTransfer(FALSE) )
     {
         // Error: Collision during start
-        status = 3;
+        status = I2C_STATUS_COLLISION;
         return status;
     }
     // Transmit the address
@@ -253,13 +253,13 @@ UINT8 PokeAddress(UINT8 address) {
         if(!I2CByteWasAcknowledged(ACTIVE_I2C_BUS))
         {
             // Error: Sent address was not acknowledged
-            status = 1;
+            status = I2C_STATUS_NACK_ADDRESS;
         }
     }
     else
     {
         // Error: Failed to transmit
-        status = 4;
+        status = I2C_STATUS_FAILED;
     }
 
     // End the transfer

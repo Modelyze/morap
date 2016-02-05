@@ -8,12 +8,14 @@ An API has been developed for a PIC32 processor, or more specifically the PIC32M
 ## How it Works
 The communication protocol works on an I2C bus [link to wiki?], a serial communication protocol, running at 100 kHz. The I2C protocol is a single master protocol in which a master can initiate communication and write or request data from an addressable slave. The system can address up to 128 different units (but in practice some of these are reserved resulting in 112 practical addresses), allowing for many different subsystems to be included on the bus. 
 
-Each joint and end-effector has an unique address allowing the master to address individual modules. If the addressed slave exists and acknowledges its existence on the bus the master starts to write data to the slave one byte at a time. The master can also request data from a slave. However to define what data it wants to read the master usually has to write that info to the slave before requesting data from it.
+Each joint and end-effector has an unique address allowing the master to address individual modules. If the addressed slave exists and acknowledges its existence on the bus the master starts to write data to the slave one byte at a time. A master can also read data from a slave, however such a read operation is an individual event so the master usually has to specify what data it wants to read by writing that information to the slave before requesting a read operation.
 
 As this is a standardized protocol peripheral hardware, for example sensors, can be easily included in the system.
 
 ## Communication Protocol
 In order for the slave to know what type of data the master writes the first byte sent after the address is an identifier. For some commands, like disabling the motors or calibrating the encoders, only requires this identifier to take effect. If additional data is needed, for example setting reference points for the controller, it is provided after the identifier with data-types larger than one byte sent with LSB first [check].
+
+When a read operation is performed on a node it will start to return data. But to define what data it will return by first writing the specified read-mode (id 128+ in the table below) before starting to request data.
 
 A table containing the identifiers, their purpose and format (purpose(variable type)(nr of bytes)) (the identifier has the variable type (uint8)) are located below:
 

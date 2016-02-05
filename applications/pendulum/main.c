@@ -38,7 +38,6 @@
 unsigned char buf[256]; // OUTPUT BUFFER FOR UART
 imu_store_struct imu_data; // Store measurements
 imu_raw_store_struct imu_raw_data;
-//imu_store_struct imu_mean_data = {.accX = 0, .accY = 0, .accZ = 0, .gyroX = 0, .gyroY = 0, .gyroZ = 0};
 
 int main(void) {
     // Configure the device for maximum performance but do not change the PBDIV
@@ -133,7 +132,7 @@ int main(void) {
 
 
 // Function prototypes (implemented at bottom)
-float PID_feedback_loop(float th1, float th2, UINT8 reset); // main feedback loop
+float PID_feedback_loop(float th1, float th2,float* ref_th2, UINT8 reset); // main feedback loop
 void scanI2Cbus(void); // scans bus and prints found addresses
 void potControl(void);
 
@@ -165,12 +164,12 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     // Activation angles
 #define SWITCH_TO_ACTIVE_ACTIVATION_TIME (2*FS)
 #define TH2_ACTIVATION_ANGLE 0.1
-#define TH2_DEACTIVATION_ANGLE (M_PI/6.0)
+#define TH2_DEACTIVATION_ANGLE (M_PI/18.0)
 #define TH1_DEACTIVATION_ANGLE (1.4*M_PI)
     
     static UINT8 control_state = CONTROL_STATE_PASSIVE;
     static UINT16 switch_count = 0;
-    static float th2, th1, ref_vel;
+    static float th2, th1, reference, ref_th2;
     if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
         if (kalman_reset == 1) putsUART1("Resetting kalman filter!\n\r");
         th2 = kalman_filtering(&imu_data,&kalman_reset);
@@ -196,7 +195,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
                     LED5_ON();
                     if (calibrate_encoder_zero(NODE_ID) == I2C_STATUS_SUCCESFUL) {
                         putsUART1("ACTIVATING MOTOR\n\r");
-                        ref_vel = PID_feedback_loop(0.0,th2,1); // Resets pid loop
+                        reference = PID_feedback_loop(0.0,th2,&ref_th2,1); // Resets pid loop
                         control_state = CONTROL_STATE_ACTIVE;
                     } else {
                         putsUART1("NO MOTOR FOUND\n\r");
@@ -212,9 +211,10 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
                 break;
             case CONTROL_STATE_ACTIVE:
                 // PID CONTROL
-                ref_vel = PID_feedback_loop(th1,th2,0);
+                reference = PID_feedback_loop(th1,th2,&ref_th2,0);
                 LED5_ON(); PULSE_TRIGGER();
-                mtr_i2c_status = set_angular_velocity(NODE_ID, ref_vel);
+                //mtr_i2c_status = set_angular_velocity(NODE_ID, reference);
+                mtr_i2c_status = set_torque(NODE_ID, reference);
                 LED5_OFF();
 
                 // Exit state if any of these conditions are fulfilled
@@ -233,8 +233,8 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         
         // Print info every now and then
         if (cnt % (FS/4) == 0) {
-            sprintf(buf,"th1 = %0.3f deg, th2 = %0.3f deg, ref_vel = %0.2f rad/s (abs acc = %0.2fg)\n\r",\
-            RAD_TO_DEG(th1), RAD_TO_DEG(th2),ref_vel,get_abs_acc(&imu_data) );
+            sprintf(buf,"th1: %0.2f deg, th2: %0.2f deg, ref: %0.2f, rth2: %0.2f (%0.2fg)\n\r",\
+            RAD_TO_DEG(th1), RAD_TO_DEG(th2),reference,RAD_TO_DEG(ref_th2),get_abs_acc(&imu_data) );
             putsUART1(buf);
         }
 
@@ -253,16 +253,25 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     }
 #endif
 #ifdef DISP_KALMAN_FILTER
+    static float max_rate = -1000, min_rate = 1000;
     if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
 #ifndef FEEDBACK_CONTROL
         if (kalman_reset == 1) putsUART1("Resetting kalman filter!\n\r");
         float th2 = kalman_filtering(&imu_data,&kalman_reset);
 #endif
+        float rate = get_control_signal(&imu_data);
+        if(rate > max_rate) max_rate = rate;
+        if(rate < min_rate) min_rate = rate;
+
         if(cnt % (FS/4) == 0) {
-            float rate = get_control_signal(&imu_data);
+            //float rate = get_control_signal(&imu_data);
             sprintf(buf,"a = %0.3f deg (abs acc = %0.2fg, rate = %0.2f deg/s)\n\r",\
-                    RAD_TO_DEG(th2),get_abs_acc(&imu_data),RAD_TO_DEG(rate) );
+                    RAD_TO_DEG(th2),get_abs_plane_acc(&imu_data),RAD_TO_DEG(rate) );
             putsUART1(buf);
+            sprintf(buf," (rates = %0.2f : %0.2f)\n\r",\
+                    RAD_TO_DEG(min_rate),RAD_TO_DEG(max_rate) );
+            putsUART1(buf);
+            max_rate = -1000; min_rate = 1000;
         }
         RED_LED_OFF();
     } else {
@@ -332,25 +341,63 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     }
 }
 
-float PID_feedback_loop(float th1, float th2, UINT8 reset) {
+#define sign(f) (((float)(f > 0)) - ((float)(f < 0)))
+float PID_feedback_loop(float th1, float th2, float* rth2, UINT8 reset) {
+    // PID-constants for keeping the Pendulum at a certain position
+    const float P_pos = 0.0, I_pos = 0.0, D_pos = 0.0, N_pos = 100;
+    const float P_pos_limit = 2.0*M_PI/180.0, I_pos_limit = 2.0*M_PI/180.0;
+    static float th1_ref = 0.0, err_pos, err_cum_pos = 0.0, old_pos_err = 0.0;
+    static float P_pos_out = 0, I_pos_out = 0, D_pos_out = 0;
+
     // PID-constants for keeping the pendulum straight up
-    const float P_pend = 10.0, I_pend = 0.0, D_pend = 2.0;
+    const float P_pend = 20.0, I_pend = 0.0, D_pend = 0.1, N_pend = 100;
+    //const float P_pend = 0.0, I_pend = 0.0, D_pend = 0.0, N_pend = 10;
     // Working variables for pendulum balancing
     static float th2_ref = 0.0, err_pend, err_cum_pend = 0.0, old_th2 = 0.0;
+    static float D_pend_out = 0; // Filtered D-part
 
     if (reset) {
+        // pos pid
+        th1_ref = 0.0;
+        err_pos = 0.0;
+        err_cum_pos = 0.0;
+        old_pos_err = 0.0;
+        P_pos_out = 0;
+        I_pos_out = 0;
+        D_pos_out = 0;
+
+        // pend pid
+        D_pend_out = 0.0;
         th2_ref = 0.0;
         err_pend = 0.0;
         err_cum_pend = 0.0;
         old_th2 = th2;
+
+        *rth2 = th2_ref;
         return 0.0;
     }
+
+    // Position control
+    err_pos = (th1_ref - th1);
+    err_cum_pos += err_pos*TS;
+    P_pos_out = P_pos*err_pos;
+    if (fabsf(P_pos_out) > P_pos_limit) P_pos_out = sign(P_pos_out)*P_pos_limit;
+    I_pos_out = I_pos*err_cum_pos;
+    if (fabsf(I_pos_out) > I_pos_limit) I_pos_out = sign(I_pos_out)*I_pos_limit;
+    D_pos_out = (D_pos*N_pos*(err_pos - old_pos_err) + D_pos_out)/(N_pos*TS + 1);
+    th2_ref = P_pos_out + I_pos_out + D_pos_out;
+    old_pos_err = err_pos;
 
     // Pendulum balancing
     err_pend = (th2 - th2_ref);
     err_cum_pend += err_pend*TS;
-    float output = P_pend*err_pend + I_pend*err_cum_pend + D_pend*(th2 - old_th2)/TS;
+    if (N_pend < 99)
+        D_pend_out = (D_pend*N_pend*(th2 - old_th2) + D_pend_out)/(N_pend*TS + 1);
+    else
+        D_pend_out = D_pend*(th2 - old_th2)/TS;
+    float output = P_pend*err_pend + I_pend*err_cum_pend + D_pend_out;// D_pend*(th2 - old_th2)/TS;
     old_th2 = th2;
+    *rth2 = th2_ref;
     return output;
 }
 
@@ -420,6 +467,7 @@ void potControl(void) {
         motor_i2c_status = set_angular_velocity(NODE_ID,send_value);
 #else
         send_value = (((float)read_adc(A0))-512)*1.5708/512; // +- 90 degrees
+        //send_value = M_PI/180.0;
         LED5_ON();
         motor_i2c_status = set_angle(NODE_ID,send_value);
         LED5_OFF();

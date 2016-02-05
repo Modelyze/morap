@@ -94,7 +94,7 @@ system_status_struct systemStatus = {
 };
 
 // controller variables passed between
-volatile float pos_ref = 0, vel_ref = 0, drive_voltage = 0;
+volatile float pos_ref = 0, vel_ref = 0, drive_voltage = 0, amp_ref = 0;
 control_params_struct posControlParams, velControlParams;
 motor_params_struct motorData;
 
@@ -142,9 +142,10 @@ int main(void) {
 
 // Prototypes, implementation at bottom
 void control_loop(control_params_struct*,float,unsigned char);
+void voltage_drive(float,unsigned char);
+void set_current(float,unsigned char);
 
 // Timer interrupt for sampling
-//#define USE_LP_ON_DRIVE_VOLTAGE
 void _ISR _T1Interrupt(void) {
     if(systemStatus.enc_calib == ENCODER_IS_CALIBRATED) LED2_ON();
 
@@ -152,9 +153,6 @@ void _ISR _T1Interrupt(void) {
     static unsigned char reset_control_loop = 0; // If 1 the control loop will reset
     static unsigned char prev_control_mode = CONTROL_MODE_DISABLED;
     static unsigned int Fs = DEFAULT_FS;
-#ifdef USE_LP_ON_DRIVE_VOLTAGE
-    static float input_drive_voltage = 0.0; // Low pass filter for drive voltage
-#endif
 
     // Update eventual stored motor speed
     update_motor_speed();
@@ -174,7 +172,7 @@ void _ISR _T1Interrupt(void) {
         prev_control_mode = CONTROL_MODE_NEVER; // Force update of sampling rate
     }
 
-    // Sets the sampling rate if the control mode is changed
+    // Sets the sampling rate and resets parameters if the control mode is changed
     if (systemStatus.control_mode != prev_control_mode) {
         if (systemStatus.control_mode == CONTROL_MODE_POSITION_FEEDBACK)
             Fs = posControlParams.Fs;
@@ -188,9 +186,6 @@ void _ISR _T1Interrupt(void) {
         led1_timer_count = -1;
         LED1_OFF();
 #endif
-#ifdef USE_LP_ON_DRIVE_VOLTAGE
-        input_drive_voltage = 0.0;
-#endif
         set_timer1_period(Fs);
         TMR1 = 0;
         prev_control_mode = systemStatus.control_mode;
@@ -199,38 +194,30 @@ void _ISR _T1Interrupt(void) {
 
     // Does stuff depending on what it wants to do
     if (systemStatus.control_mode == CONTROL_MODE_DISABLED || systemStatus.enc_calib == ENCODER_CALIBRATION_NEEDED) {
-        MOTOR_DISABLE();
-        MOTOR_BRAKE_ON();
+        MOTOR_DISABLE(); MOTOR_BRAKE_ON();
         set_motor_speed(0.0);
-        reset_control_loop = 1;
-#ifdef USE_LP_ON_DRIVE_VOLTAGE
-        input_drive_voltage = 0.0;
-#endif
     } else if (systemStatus.control_mode == CONTROL_MODE_POSITION_FEEDBACK) {
-        MOTOR_ENABLE();
-        MOTOR_BRAKE_OFF();
-        control_loop(&posControlParams,pos_ref,reset_control_loop); // Main control loop
+        MOTOR_ENABLE(); MOTOR_BRAKE_OFF();
+        control_loop(&posControlParams,pos_ref,reset_control_loop); // Main pos control loop
         reset_control_loop = 0;
     } else if (systemStatus.control_mode == CONTROL_MODE_SPEED_FEEDBACK) {
-        MOTOR_ENABLE();
-        MOTOR_BRAKE_OFF();
-        control_loop(&velControlParams,vel_ref,reset_control_loop); // Main control loop
+        MOTOR_ENABLE(); MOTOR_BRAKE_OFF();
+        control_loop(&velControlParams,vel_ref,reset_control_loop); // Main speed control loop
         reset_control_loop = 0;
     } else if (systemStatus.control_mode == CONTROL_MODE_VOLTAGE) {
-        MOTOR_ENABLE();
-        MOTOR_BRAKE_OFF();
-#ifdef USE_LP_ON_DRIVE_VOLTAGE
-#define DRIVE_DIGITAL_LP_CONSTANT     (1.0/((float)Fs)/0.05)
-        input_drive_voltage = (1-DRIVE_DIGITAL_LP_CONSTANT)*input_drive_voltage + DRIVE_DIGITAL_LP_CONSTANT*drive_voltage;
-        set_motor_speed(input_drive_voltage);
-#else
+        MOTOR_ENABLE(); MOTOR_BRAKE_OFF();
+        voltage_drive(drive_voltage,reset_control_loop);
+        reset_control_loop = 0;
+    } else if (systemStatus.control_mode == CONTROL_MODE_VOLTAGE) {
+        MOTOR_ENABLE(); MOTOR_BRAKE_OFF();
         set_motor_speed(drive_voltage);
-#endif
-        reset_control_loop = 1;
+    } else if (systemStatus.control_mode == CONTROL_MODE_CURRENT) {
+        MOTOR_ENABLE(); MOTOR_BRAKE_OFF();
+        set_current(amp_ref,reset_control_loop);
+        reset_control_loop = 0;
     } else {
         // Just in case
         systemStatus.control_mode = CONTROL_MODE_DISABLED;
-        reset_control_loop = 1;
     }
 
     // LED CONTROL
@@ -364,4 +351,24 @@ void control_loop(control_params_struct* cp, float reference, unsigned char rese
     old_ufb[0] = u_fb;
     old_uff[0] = u_ff;
     old_theta = theta;
+}
+
+#define DRIVE_DIGITAL_LP_CONSTANT     (1.0/((float)DEFAULT_FS)/0.05)
+void voltage_drive(float voltage, unsigned char reset){
+    static float input_drive_voltage = 0;
+    if (reset) input_drive_voltage = 0;
+    input_drive_voltage = (1-DRIVE_DIGITAL_LP_CONSTANT)*input_drive_voltage + DRIVE_DIGITAL_LP_CONSTANT*voltage;
+    set_motor_speed(input_drive_voltage);
+}
+
+void set_current(float current, unsigned char reset) {
+    static float old_theta = 0.0;
+    float theta = ENCODER_TO_RAD(motorData.ppr)*encoder_value/motorData.n;
+    if (reset == 1) old_theta = theta;
+    if (current > motorData.imax) current = motorData.imax;
+    else if (current < -motorData.imax) current = -motorData.imax;
+
+    float u = motorData.K*motorData.n*(theta-old_theta)/(1.0/((float)DEFAULT_FS)) + motorData.R*current;
+    old_theta = theta;
+    set_motor_speed(u);
 }

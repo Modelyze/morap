@@ -43,11 +43,13 @@
 #define I2C_SET_POSITION_REFERENCE          1
 #define I2C_SET_SPEED_REFERENCE             2
 #define I2C_SET_DRIVE_VOLTAGE               3
+#define I2C_SET_DIRECT_DRIVE_VOLTAGE        4
+#define I2C_SET_TORQUE                      5
 
 #define I2C_SET_TRAJECTORY                  7
 
-#define I2C_DISABLE_BRAKE                   14
-#define I2C_ENABLE_BRAKE                    15
+#define I2C_ENABLE_BRAKE                    14
+#define I2C_DISABLE_BRAKE                   15
 
 #define I2C_CALIBRATE_ENCODER_ZERO          16
 #define I2C_CALIBRATE_ENCODER_PROVIDED      17
@@ -318,8 +320,10 @@ UINT8 tune_control_params(UINT8 node_id, UINT8 c_type, float J, float w);
 #define set_default_control_params(nid) (node_write_command(ID_TO_ADDRESS(nid),I2C_USE_DEFAULT_CONTROL_PARAMS))
 
 #define set_voltage(nid,flt) (node_write_float(ID_TO_ADDRESS(nid),I2C_SET_DRIVE_VOLTAGE,flt))
+#define set_direct_voltage(nid,flt) (node_write_float(ID_TO_ADDRESS(nid),I2C_SET_DIRECT_DRIVE_VOLTAGE,flt))
 #define set_angle(nid,flt) (node_write_float(ID_TO_ADDRESS(nid),I2C_SET_POSITION_REFERENCE,flt))
 #define set_angular_velocity(nid,flt) (node_write_float(ID_TO_ADDRESS(nid),I2C_SET_SPEED_REFERENCE,flt))
+#define set_torque(nid,flt) (node_write_float(ID_TO_ADDRESS(nid),I2C_SET_TORQUE,flt))
 
 #define poke_motor(nid) (PokeAddress(ID_TO_ADDRESS(nid)))
 

@@ -81,32 +81,61 @@ void _ISR_NO_PSV _SI2C1Interrupt(void) {
                 systemStatus.control_mode = CONTROL_MODE_DISABLED;
                 break;
             case I2C_SET_POSITION_REFERENCE:
-                systemStatus.control_mode = CONTROL_MODE_POSITION_FEEDBACK;
                 if (n_sent > 0) {
                     *( ((unsigned char*) &new_floats) + (n_sent - 1)) = timmy;
-                    if ( n_sent == sizeof(float))
+                    if ( n_sent == sizeof(float)) {
                         pos_ref = new_floats;
+                        systemStatus.control_mode = CONTROL_MODE_POSITION_FEEDBACK;
+                    }
                 }
                 break;
             case I2C_SET_SPEED_REFERENCE:
-                systemStatus.control_mode = CONTROL_MODE_SPEED_FEEDBACK;
+                
                 if (n_sent > 0) {
                     *( ((unsigned char*) &new_floats) + (n_sent - 1)) = timmy;
-                    if ( n_sent == sizeof(float))
+                    if ( n_sent == sizeof(float)) {
                         vel_ref = new_floats;
+                        systemStatus.control_mode = CONTROL_MODE_SPEED_FEEDBACK;
+                    }
                 }
                 break;
             case I2C_SET_DRIVE_VOLTAGE:
-                systemStatus.control_mode = CONTROL_MODE_VOLTAGE;
                 if (n_sent > 0) {
                     *( ((unsigned char*) &new_floats) + (n_sent - 1)) = timmy;
                     if ( n_sent == sizeof(float)) {
                         drive_voltage = new_floats;
+                        systemStatus.control_mode = CONTROL_MODE_VOLTAGE;
                     }
                 }
                 break;
+            case I2C_SET_DIRECT_DRIVE_VOLTAGE:
+                if (n_sent > 0) {
+                    *( ((unsigned char*) &new_floats) + (n_sent - 1)) = timmy;
+                    if ( n_sent == sizeof(float)) {
+                        drive_voltage = new_floats;
+                        systemStatus.control_mode = CONTROL_MODE_DIRECT_VOLTAGE;
+                    }
+                }
+                break;
+            case I2C_SET_TORQUE:
+                if (n_sent > 0) {
+                    *( ((unsigned char*) &new_floats) + (n_sent - 1)) = timmy;
+                    if ( n_sent == sizeof(float)) {
+                        new_floats = new_floats/(motorData.eta*motorData.K*motorData.n); //tau = eta*K*n*i;
+                        amp_ref = new_floats;
+                        systemStatus.control_mode = CONTROL_MODE_CURRENT;
+                    }
+                }
+                break;
+                break;
             case I2C_SET_TRAJECTORY:
                 // TODO: implement trajectory planner
+                break;
+            case I2C_ENABLE_BRAKE:
+                // TODO: implement
+                break;
+            case I2C_DISABLE_BRAKE:
+                // TODO: implement
                 break;
             case I2C_CALIBRATE_ENCODER_ZERO:
                 encoder_value = 0;
@@ -118,6 +147,7 @@ void _ISR_NO_PSV _SI2C1Interrupt(void) {
                     *( ((unsigned char*) &new_floats) + (n_sent - 1)) = timmy;
                     if (n_sent == sizeof(float)) {
                         encoder_value = new_floats*motorData.n/ENCODER_TO_RAD(motorData.ppr);
+                        systemStatus.enc_calib = ENCODER_IS_CALIBRATED;
                     }
                 }
                 break;
@@ -131,7 +161,6 @@ void _ISR_NO_PSV _SI2C1Interrupt(void) {
                     AssembleNewControlParams( (n_sent - 1), timmy );
                 }
                 break;
-
             case I2C_USE_DEFAULT_CONTROL_PARAMS:
                 if (n_sent == 0) {
                     systemStatus.new_control_available = NEW_CONTROLLER_DEFAULT;
@@ -397,7 +426,7 @@ void AssembleNewControlParams(unsigned char n,unsigned char data) {
     }
 
 }
-// Outputs single bytes of the control parameters
+// Output byte n of the control parameters
 unsigned char ControlParamsBytes(control_params_struct* cp, unsigned char n) {
     const unsigned char OFFSET_FS = 1;
     const unsigned char OFFSET_D = 4;

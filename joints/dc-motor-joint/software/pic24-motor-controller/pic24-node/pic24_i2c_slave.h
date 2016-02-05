@@ -26,10 +26,13 @@
 #define I2C_SET_POSITION_REFERENCE          1
 #define I2C_SET_SPEED_REFERENCE             2
 #define I2C_SET_DRIVE_VOLTAGE               3
+#define I2C_SET_DIRECT_DRIVE_VOLTAGE        4
+#define I2C_SET_TORQUE                      5
 
 #define I2C_SET_TRAJECTORY                  7
 
-#define I2C_ENABLE_BRAKE                    15
+#define I2C_ENABLE_BRAKE                    14
+#define I2C_DISABLE_BRAKE                   15
 
 #define I2C_CALIBRATE_ENCODER_ZERO          16
 #define I2C_CALIBRATE_ENCODER_PROVIDED      17

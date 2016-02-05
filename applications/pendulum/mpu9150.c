@@ -23,6 +23,10 @@ imu_calib_struct calib = {.axBias = -74, .ayBias = 80, .azBias = -172, \
                           .gxBias = -13, .gyBias = -88, .gzBias = -58, \
                           .mxBias = 0, .myBias = 0, .mzBias = 0,
                           .asax = 128, .asay = 128, .asaz = 128};
+// The accelerometers which point in the directions
+const float a_axial[3] = {0,-1,0};
+const float a_radial[3] = {1,0,0};
+const float g_rate[3] = {0,0,1};
 
 // Function prototypes
 UINT8 init_mpu9150(void) {
@@ -37,10 +41,6 @@ UINT8 init_mpu9150(void) {
     data[0] = MPU9150_INT_PIN_CFG;
     data[1] = 0b00000010;
     ret_val = TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
-    // Sets DLPF to a around 100 Hz, this ensures sampling rate of imu to be 1 kHz
-    data[0] = MPU9150_CONFIG;
-    data[1] = (2 << 0);
-    ret_val |= TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
     // Disable sleep mode
     data[0] = MPU9150_PWR_MGMT_1;
     data[1] = 0;
@@ -54,6 +54,10 @@ UINT8 init_mpu9150(void) {
     UINT8 AFS_SEL = ACCEL_AFS_SEL_4g;
     data[0] = MPU9150_ACCEL_CONFIG;
     data[1] = (AFS_SEL << 3);
+    ret_val |= TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
+    // Sets DLPF to a around 100 Hz, this ensures sampling rate of imu to be 1 kHz
+    data[0] = MPU9150_CONFIG;
+    data[1] = (3 << 0);
     ret_val |= TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
 
     // Load device calibration values
@@ -151,14 +155,20 @@ float get_abs_acc(imu_store_struct* imu_data) {
     return sqrtf(powf(imu_data->accX,2) + powf(imu_data->accY,2) + powf(imu_data->accZ,2));
 }
 
+float get_abs_plane_acc(imu_store_struct* imu_data) {
+    return sqrtf(powf(a_radial[0]*imu_data->accX,2) + powf(a_axial[0]*imu_data->accX,2) + \
+                 powf(a_radial[1]*imu_data->accY,2) + powf(a_axial[1]*imu_data->accY,2) + \
+                 powf(a_radial[2]*imu_data->accZ,2) + powf(a_axial[2]*imu_data->accZ,2) );
+}
+
 float get_measurement(imu_store_struct* imu_data) {
-    float a_radial = imu_data->accX;
-    float a_axial = -imu_data->accY;
-    return atan2f(a_axial,a_radial);
+    float a_rad = a_radial[0]*imu_data->accX + a_radial[1]*imu_data->accY + a_radial[2]*imu_data->accZ;
+    float a_ax = a_axial[0]*imu_data->accX + a_axial[1]*imu_data->accY + a_axial[2]*imu_data->accZ;
+    return atan2f(a_ax,a_rad);
 }
 
 float get_control_signal(imu_store_struct* imu_data) {
-    return 1*(imu_data->gyroZ);
+    return (g_rate[0]*imu_data->gyroX + g_rate[1]*imu_data->gyroY + g_rate[2]*imu_data->gyroZ);
 }
 
 float bind_angle(float input) {
@@ -201,20 +211,24 @@ float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
     Pb[1] = P[1] - dT*P[3];
     Pb[2] = P[2] - dT*P[3];
     Pb[3] = P[3] + Qbias;
-    // Calculate Kalman Gain
-    Sinv = 1/(Pb[0] + Rth);
-    K[0] = Pb[0]*Sinv;
-    K[1] = Pb[2]*Sinv;
-    // Update state with measurement
-    z = get_measurement(imu_data); // TODO: add some logic regarding going from -180 to 180 degrees
-    y = bind_angle(z - xb[0]);
-    x[0] = bind_angle(xb[0] + K[0]*y);
-    x[1] = xb[1] + K[1]*y;
-    // Update error matrix
-    P[0] = Pb[0]*(1.0-K[0]);
-    P[1] = Pb[1]*(1.0-K[0]);
-    P[2] = -K[1]*Pb[0] + Pb[2];
-    P[3] = -K[1]*Pb[1] + Pb[3];
+
+    // Update
+    if(fabsf(get_abs_plane_acc(imu_data) - 1.0) < 0.05 ) {
+        // Calculate Kalman Gain
+        Sinv = 1/(Pb[0] + Rth);
+        K[0] = Pb[0]*Sinv;
+        K[1] = Pb[2]*Sinv;
+        // Update state with measurement
+        z = get_measurement(imu_data);
+        y = bind_angle(z - xb[0]);
+        x[0] = bind_angle(xb[0] + K[0]*y);
+        x[1] = xb[1] + K[1]*y;
+        // Update error matrix
+        P[0] = Pb[0]*(1.0-K[0]);
+        P[1] = Pb[1]*(1.0-K[0]);
+        P[2] = -K[1]*Pb[0] + Pb[2];
+        P[3] = -K[1]*Pb[1] + Pb[3];
+    }
 
     return x[0];
 }

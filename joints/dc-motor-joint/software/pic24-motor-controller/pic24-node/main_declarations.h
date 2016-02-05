@@ -91,18 +91,21 @@ typedef struct tag_system_status_struct {
 #define NEW_CONTROLLER_AVAILABLE      1
 #define NEW_CONTROLLER_DEFAULT        2
 
-#define CONTROL_MODE_POSITION_FEEDBACK  0
-#define CONTROL_MODE_SPEED_FEEDBACK     1
-#define CONTROL_MODE_VOLTAGE            2
-#define CONTROL_MODE_DISABLED           3
-#define CONTROL_MODE_NEVER              10
+#define CONTROL_MODE_DISABLED           0
+#define CONTROL_MODE_POSITION_FEEDBACK  1
+#define CONTROL_MODE_SPEED_FEEDBACK     2
+#define CONTROL_MODE_VOLTAGE            3
+#define CONTROL_MODE_DIRECT_VOLTAGE     4
+#define CONTROL_MODE_CURRENT            5
+#define CONTROL_MODE_TRAJECTORY         9
+#define CONTROL_MODE_NEVER              100
 
 // Global variables
 extern volatile long int encoder_value;
 extern motor_params_struct motorData;
 extern control_params_struct posControlParams, velControlParams, newControlParams;
 extern system_status_struct systemStatus;
-extern volatile float pos_ref, vel_ref, drive_voltage;
+extern volatile float pos_ref, vel_ref, drive_voltage, amp_ref;
 #ifdef LED1_MODE_I2C
 extern volatile int led1_timer_count;
 #endif

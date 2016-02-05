@@ -106,3 +106,10 @@ set_default_control_params(node_id);
 
 ## Compatability
 This api has been developed for a the PIC32MX320F128 microcontroller equipped on a uno32, an arduino compatible development board. It should work on similar microcontrollers but it hasn't been tested.
+
+Technically the modular_arms.h and modular_arms.c should work with any systems as long as the i2c drivers are available. The required functions are:
+```c
+unsigned char TransmitData(unsigned char address, unsigned char* data, unsigned char datasize);
+unsigned char ReadData(unsigned char address, unsigned char* data_bufger, unsigned char datasize);
+unsigned char PokeAddress(unsigned char address);
+```

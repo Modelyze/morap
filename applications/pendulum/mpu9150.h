@@ -150,6 +150,12 @@ float get_measurement(imu_store_struct* imu_data);
 float get_abs_acc(imu_store_struct* imu_data);
 
 /*
+ * Gets the absolute acceleration in the plane of
+ * rotation
+ */
+float get_abs_plane_acc(imu_store_struct* imu_data);
+
+/*
  * Get gyro control signal
  */
 float get_control_signal(imu_store_struct* imu_data);
