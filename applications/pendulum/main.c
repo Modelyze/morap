@@ -132,7 +132,8 @@ int main(void) {
 
 
 // Function prototypes (implemented at bottom)
-float PID_feedback_loop(float th1, float th2,float* ref_th2, UINT8 reset); // main feedback loop
+float PID_feedback_loop(float th1, float th2,float* ref_th2, UINT8 reset); // PID feedback loop
+float state_feedback_loop(float th1, float th2, float r, UINT8 reset); // state feedback
 void scanI2Cbus(void); // scans bus and prints found addresses
 void potControl(void);
 
@@ -153,9 +154,6 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     UINT8 imu_i2c_status = read_imu_data(&imu_data), mtr_i2c_status;
     LED5_OFF();
 
-
-
-
 #ifdef FEEDBACK_CONTROL
     // Control states
 #define CONTROL_STATE_PASSIVE 0
@@ -164,12 +162,12 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     // Activation angles
 #define SWITCH_TO_ACTIVE_ACTIVATION_TIME (2*FS)
 #define TH2_ACTIVATION_ANGLE 0.1
-#define TH2_DEACTIVATION_ANGLE (M_PI/18.0)
+#define TH2_DEACTIVATION_ANGLE (15.0*M_PI/180.0)
 #define TH1_DEACTIVATION_ANGLE (1.4*M_PI)
     
     static UINT8 control_state = CONTROL_STATE_PASSIVE;
     static UINT16 switch_count = 0;
-    static float th2, th1, reference, ref_th2;
+    static float th2, th1, reference, ref_th2=0;
     if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
         if (kalman_reset == 1) putsUART1("Resetting kalman filter!\n\r");
         th2 = kalman_filtering(&imu_data,&kalman_reset);
@@ -195,7 +193,8 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
                     LED5_ON();
                     if (calibrate_encoder_zero(NODE_ID) == I2C_STATUS_SUCCESFUL) {
                         putsUART1("ACTIVATING MOTOR\n\r");
-                        reference = PID_feedback_loop(0.0,th2,&ref_th2,1); // Resets pid loop
+                        //reference = PID_feedback_loop(0.0,th2,&ref_th2,1); // Resets pid loop
+                        reference = state_feedback_loop(0.0,th2,0.0,1);
                         control_state = CONTROL_STATE_ACTIVE;
                     } else {
                         putsUART1("NO MOTOR FOUND\n\r");
@@ -210,8 +209,9 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
                 switch_count++;
                 break;
             case CONTROL_STATE_ACTIVE:
-                // PID CONTROL
-                reference = PID_feedback_loop(th1,th2,&ref_th2,0);
+                // CONTROL ALGORITHM
+                //reference = PID_feedback_loop(th1,th2,&ref_th2,0);
+                reference = state_feedback_loop(th1,th2,0.0,0);
                 LED5_ON(); PULSE_TRIGGER();
                 //mtr_i2c_status = set_angular_velocity(NODE_ID, reference);
                 mtr_i2c_status = set_torque(NODE_ID, reference);
@@ -344,13 +344,13 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
 #define sign(f) (((float)(f > 0)) - ((float)(f < 0)))
 float PID_feedback_loop(float th1, float th2, float* rth2, UINT8 reset) {
     // PID-constants for keeping the Pendulum at a certain position
-    const float P_pos = 0.0, I_pos = 0.0, D_pos = 0.0, N_pos = 100;
+    const float P_pos = 0.0, I_pos = 0.0, D_pos = 0.01, N_pos = 100;
     const float P_pos_limit = 2.0*M_PI/180.0, I_pos_limit = 2.0*M_PI/180.0;
     static float th1_ref = 0.0, err_pos, err_cum_pos = 0.0, old_pos_err = 0.0;
     static float P_pos_out = 0, I_pos_out = 0, D_pos_out = 0;
 
     // PID-constants for keeping the pendulum straight up
-    const float P_pend = 20.0, I_pend = 0.0, D_pend = 0.1, N_pend = 100;
+    const float P_pend = 30.0, I_pend = 0.0, D_pend = 4.0, N_pend = 100;
     //const float P_pend = 0.0, I_pend = 0.0, D_pend = 0.0, N_pend = 10;
     // Working variables for pendulum balancing
     static float th2_ref = 0.0, err_pend, err_cum_pend = 0.0, old_th2 = 0.0;
@@ -399,6 +399,26 @@ float PID_feedback_loop(float th1, float th2, float* rth2, UINT8 reset) {
     old_th2 = th2;
     *rth2 = th2_ref;
     return output;
+}
+
+float state_feedback_loop(float th1, float th2, float r, UINT8 reset) {
+    // states = [th1,th2,th1_dot,th2_dot]
+    static float L[] = {-1.0000,18.0423,-1.3141,1.4329};
+    static float Nr = -1.0000;
+
+    static float th1_old = 0, th2_old = 0;
+
+    if (reset){
+        th1_old = th1;
+        th2_old = th2;
+        return 0.0;
+    }
+    float th1_dot = (th1 - th1_old)/TS;
+    float th2_dot = (th2 - th2_old)/TS;
+    th1_old = th1;
+    th2_old = th2;
+
+    return L[0]*th1 + L[1]*th2 + L[2]*th1_dot + L[3]*th2_dot + Nr*r;
 }
 
 void scanI2Cbus(void) {

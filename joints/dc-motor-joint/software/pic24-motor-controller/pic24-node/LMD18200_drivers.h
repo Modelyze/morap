@@ -50,7 +50,7 @@
 
 // PWM-period in timer ticks loaded into the period register
 // Needs to be uneven
-#define MOTOR_PWM_PERIOD 127
+#define MOTOR_PWM_PERIOD 255
 
 // Offset the falling edge by fractions of a clock cycle using
 // the DCB field, this needs to be configured if changing periods

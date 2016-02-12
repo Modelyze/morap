@@ -228,6 +228,13 @@ float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
         P[1] = Pb[1]*(1.0-K[0]);
         P[2] = -K[1]*Pb[0] + Pb[2];
         P[3] = -K[1]*Pb[1] + Pb[3];
+    } else {
+        x[0] = xb[0];
+        x[1] = xb[1];
+        P[0] = Pb[0];
+        P[1] = Pb[1];
+        P[2] = Pb[2];
+        P[3] = Pb[3];
     }
 
     return x[0];

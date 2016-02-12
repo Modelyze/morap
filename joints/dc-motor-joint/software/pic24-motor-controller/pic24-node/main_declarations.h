@@ -26,7 +26,14 @@
 #define PRIORITY_COMM       4   // I2C comm event
 
 // ON BOARD LEDS
+#ifdef __PIC24F32KA302__
+#define INIT_LEDS() (TRISBbits.TRISB2 = 0, TRISBbits.TRISB4 = 0, TRISBbits.TRISB5 = 0)
+#define LED3_ON() (LATBbits.LATB5 = 1)
+#define LED3_OFF() (LATBbits.LATB5 = 0)
+#define LED3_SWAP() (LATBbits.LATB5 = ~(LATBbits.LATB5))
+#else
 #define INIT_LEDS() (TRISBbits.TRISB2 = 0, TRISBbits.TRISB4 = 0)
+#endif
 #define LED1_ON() (LATBbits.LATB2 = 1)
 #define LED1_OFF() (LATBbits.LATB2 = 0)
 #define LED1_SWAP() (LATBbits.LATB2 = ~(LATBbits.LATB2))

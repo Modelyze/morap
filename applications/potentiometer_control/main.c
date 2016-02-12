@@ -42,7 +42,8 @@
 
 // Position or velociy feedback
 //#define MODE_SPEED_FEEDBACK
-#define MODE_POSITION_FEEDBACK
+//#define MODE_POSITION_FEEDBACK
+#define MODE_DIRECT_VOLTAGE
 
 // Clock reading functions used with the above config
 #define GetSystemClock()           (SYS_FREQ)
@@ -164,7 +165,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     static UINT8 motor2_status = MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED;
     static UINT8 motor1_i2c_status = 1, motor2_i2c_status = 1;
 
-    // Check if button 1 is pressed, if enable/disable the motors
+    // Check if button 1 is pressed, if enable/disable motor 1
     static UINT8 but1_pressed = 0;
     static UINT32 prev_but1_cnt = 0;
     if (GET_BUT1() && !but1_pressed && (cnt-prev_but1_cnt > 5) ) {
@@ -181,23 +182,6 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
             sprintf(buf,"Motor 1 with id %d not found on the bus\n\r",NODE1_ID);
             putsUART1(buf);
         }
-
-        // Init/exit motor 2 but follow whatever motor 1 did
-        // so both motors are either on/off at the same time
-        if (motor2_i2c_status == I2C_STATUS_SUCCESFUL) {
-            if( motor2_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED && motor1_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
-                set_calibration_status_unknown(NODE2_ID);
-                putsUART1("Motor 2 disabled\n\r");
-            } else if (motor1_status == MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED && motor2_status == MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
-                calibrate_encoder_zero(NODE2_ID);
-                putsUART1("Motor 2 enabled\n\r");
-            }
-        } else {
-            sprintf(buf,"Motor 2 with id %d not found on the bus\n\r",NODE2_ID);
-            putsUART1(buf);
-        }
-
-
         // Debouncing and making sure the button only is pressed once
         // so holding it down doesn't call this function repeatedly
         prev_but1_cnt = cnt;
@@ -206,6 +190,32 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         but1_pressed = 0;
         prev_but1_cnt = cnt;
     }
+    // Check if button 2 is pressed, if enable/disable motor 2
+    static UINT8 but2_pressed = 0;
+    static UINT32 prev_but2_cnt = 0;
+    if (GET_BUT2() && !but2_pressed && (cnt-prev_but2_cnt > 5) ) {
+        // Init/exit motor 1
+        if (motor2_i2c_status == I2C_STATUS_SUCCESFUL) {
+            if( motor2_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
+                set_calibration_status_unknown(NODE2_ID);
+                putsUART1("Motor 2 disabled\n\r");
+            } else {
+                calibrate_encoder_zero(NODE2_ID);
+                putsUART1("Motor 2 enabled\n\r");
+            }
+        } else {
+            sprintf(buf,"Motor 2 with id %d not found on the bus\n\r",NODE2_ID);
+            putsUART1(buf);
+        }
+        // Debouncing and making sure the button only is pressed once
+        // so holding it down doesn't call this function repeatedly
+        prev_but2_cnt = cnt;
+        but2_pressed = 1;
+    } else if (!GET_BUT2() && but2_pressed && (cnt-prev_but2_cnt > 5)) {
+        but2_pressed = 0;
+        prev_but2_cnt = cnt;
+    }
+
 
     // Read motor status
     LED5_ON();
@@ -216,9 +226,12 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     // Send references to motors if they're enabled
     float send_value;
     if (motor1_i2c_status == I2C_STATUS_SUCCESFUL && motor1_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
-#ifdef MODE_SPEED_FEEDBACK
+#if defined(MODE_SPEED_FEEDBACK)
         send_value = (((float)read_adc(A0))-512)*6.2831/512; // +- 360 deg/s
         motor1_i2c_status = set_angular_velocity(NODE1_ID,send_value);
+#elif defined(MODE_DIRECT_VOLTAGE)
+        send_value = (((float)read_adc(A0))-512)*24/512; // +- 24V
+        motor2_i2c_status = set_voltage(NODE1_ID,send_value);
 #else
         send_value = (((float)read_adc(A0))-512)*1.5708/512; // +- 90 degrees
         motor1_i2c_status = set_angle(NODE1_ID,send_value);
@@ -226,9 +239,12 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         RED_LED_ON();
     } else RED_LED_OFF();
     if (motor2_i2c_status == I2C_STATUS_SUCCESFUL && motor2_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
-#ifdef MODE_SPEED_FEEDBACK
+#if defined(MODE_SPEED_FEEDBACK)
         send_value = (((float)read_adc(A1))-512)*6.2831/512; // +- 360 deg/s
         motor2_i2c_status = set_angular_velocity(NODE2_ID,send_value);
+#elif defined(MODE_DIRECT_VOLTAGE)
+        send_value = (((float)read_adc(A1))-512)*24/512; // +- 24V
+        motor2_i2c_status = set_voltage(NODE2_ID,send_value);
 #else
         send_value = (((float)read_adc(A1))-512)*1.5708/512; // +- 90 degrees
         motor2_i2c_status = set_angle(NODE2_ID,send_value);
