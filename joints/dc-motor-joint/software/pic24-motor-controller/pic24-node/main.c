@@ -208,7 +208,7 @@ void _ISR _T1Interrupt(void) {
         MOTOR_ENABLE(); MOTOR_BRAKE_OFF();
         voltage_drive(drive_voltage,reset_control_loop);
         reset_control_loop = 0;
-    } else if (systemStatus.control_mode == CONTROL_MODE_VOLTAGE) {
+    } else if (systemStatus.control_mode == CONTROL_MODE_DIRECT_VOLTAGE) {
         MOTOR_ENABLE(); MOTOR_BRAKE_OFF();
         set_motor_speed(drive_voltage);
     } else if (systemStatus.control_mode == CONTROL_MODE_CURRENT) {
@@ -258,7 +258,6 @@ void _ISR _T1Interrupt(void) {
 
 #define USE_LP_ON_CURRENT_LIMITER
 #define CURRENT_LIMITER_DLPFC 0.2 // -> tau = 4*Ts
-//#define IGNORE_CURRENT_LIMITER_WITH_INTEGRATOR
 void control_loop(control_params_struct* cp, float reference, unsigned char reset_old_params) {
     static float old_y[4] = {0}, old_r[4] = {0};
     static float old_uff[4] = {0}, old_ufb[4] = {0};
@@ -284,6 +283,9 @@ void control_loop(control_params_struct* cp, float reference, unsigned char rese
         old_theta = th_curr;
         I_ff = 0;
         I_fb = 0;
+#ifdef USE_LP_ON_CURRENT_LIMITER
+        old_spd = 0;
+#endif
         save_motor_speed(0);
     }
 
@@ -322,21 +324,15 @@ void control_loop(control_params_struct* cp, float reference, unsigned char rese
     else if (u < -LIMIT_VOLTAGE) u = -LIMIT_VOLTAGE;
 
     // Current limiting, with optional low pass filter on speed
-#ifdef IGNORE_CURRENT_LIMITER_WITH_INTEGRATOR
-    if (controlParams.I == 0) {
+    float spd = (theta - old_theta)/(1.0/((float)cp->Fs));
+#ifdef USE_LP_ON_CURRENT_LIMITER
+    spd = CURRENT_LIMITER_DLPFC*spd + (1-CURRENT_LIMITER_DLPFC)*old_spd;
+    old_spd = spd;
 #endif
-        float spd = (theta - old_theta)/(1.0/((float)cp->Fs));
-    #ifdef USE_LP_ON_CURRENT_LIMITER
-        spd = CURRENT_LIMITER_DLPFC*spd + (1-CURRENT_LIMITER_DLPFC)*old_spd;
-        old_spd = spd;
-    #endif
-        float temp1 = motorData.K * motorData.n * spd;
-        float temp2 = motorData.R * motorData.imax;
-        if (u > (temp1 + temp2) ) u = (temp1 + temp2);
-        else if (u < (temp1 - temp2) ) u = (temp1 - temp2);
-#ifdef IGNORE_CURRENT_LIMITER_WITH_INTEGRATOR
-    }
-#endif
+    float temp1 = motorData.K * motorData.n * spd;
+    float temp2 = motorData.R * motorData.imax;
+    if (u > (temp1 + temp2) ) u = (temp1 + temp2);
+    else if (u < (temp1 - temp2) ) u = (temp1 - temp2);
 
     if (u != u_nosat) issat = 1; else issat = 0;
 
@@ -354,11 +350,36 @@ void control_loop(control_params_struct* cp, float reference, unsigned char rese
 }
 
 #define DRIVE_DIGITAL_LP_CONSTANT     (1.0/((float)DEFAULT_FS)/0.05)
+//#define USE_LP_FILTER_ON_VOLTAGE_CONTROL
+#define USE_CURRENT_LIMITING_ON_VOLTAGE_CONTROL
 void voltage_drive(float voltage, unsigned char reset){
+#ifdef USE_LP_FILTER_ON_VOLTAGE_CONTROL
     static float input_drive_voltage = 0;
     if (reset) input_drive_voltage = 0;
-    input_drive_voltage = (1-DRIVE_DIGITAL_LP_CONSTANT)*input_drive_voltage + DRIVE_DIGITAL_LP_CONSTANT*voltage;
-    set_motor_speed(input_drive_voltage);
+    voltage = (1-DRIVE_DIGITAL_LP_CONSTANT)*input_drive_voltage + DRIVE_DIGITAL_LP_CONSTANT*voltage;
+    input_drive_voltage = voltage;
+#endif
+#ifdef USE_CURRENT_LIMITING_ON_VOLTAGE_CONTROL
+    static float old_theta = 0;
+#ifdef USE_LP_ON_CURRENT_LIMITER_VOLTAGE
+    static float old_spd = 0;
+    if(reset) old_spd = 0;
+#endif
+    float theta = ENCODER_TO_RAD(motorData.ppr)*encoder_value/motorData.n;
+    if(reset) old_theta = theta;
+    float spd = (theta - old_theta)/(1.0/(DEFAULT_FS));
+    old_theta = theta;
+#ifdef USE_LP_ON_CURRENT_LIMITER_VOLTAGE
+    spd = CURRENT_LIMITER_DLPFC*spd + (1-CURRENT_LIMITER_DLPFC)*old_spd;
+    old_spd = spd;
+#endif
+    float temp1 = motorData.K * motorData.n * spd;
+    float temp2 = motorData.R * motorData.imax;
+    if (voltage > (temp1 + temp2) ) voltage = (temp1 + temp2);
+    else if (voltage < (temp1 - temp2) ) voltage = (temp1 - temp2);
+#endif
+    
+    set_motor_speed(voltage);
 }
 
 void set_current(float current, unsigned char reset) {

@@ -15,7 +15,7 @@ R = 0.74 + 0.33; L = 0.129e-3; K = 0.0214; m_motor = 0.412;
 % Gearbox parameters
 n = 328509/2197; eta = 0.75; c = 0.05;
 % Limitations and poles
-imax = 2; umax = 24; w = -40; % w = -12, -9
+imax = 2; umax = 24; w = -50; % w = -12, -9
 
 % Friction modeling
 dv = 1e-5; % deadband
@@ -23,12 +23,7 @@ k_f = [0.072091, 0.040963, -0.003493]; % Nonlinear friction [static, linear, qua
 %k_f = [0 c 0]; % Linear friction
 
 % Load inertia
-J = 0.05;
-
-
-%%%%%%%%%%%%%%%%%%%%%% MATH BELOW %%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
+J = 0.14;
 disp(['Max speed: ',num2str(umax/(K*n) * 30/pi,'%0.1f'),' rpm']);
 
 % transfer function of dc-motor:
@@ -99,7 +94,9 @@ if abs(t0 - s0) > 1e-6, fprintf('----- wonky shit'); end;
 clear NUM
 Rfc = (s + r0);
 % % c2d approach
-
+% Gfdff = c2d(Tfc/Rfc,Ts,'zoh')
+% Gfdfb = c2d(Sfc/Rfc,Ts,'zoh')
+% Ifd = c2d(Ifc/s,Ts,'zoh')
 % tustin approach
 Gfdff = minreal(((2*tf1 + Ts*tf0)*z + Ts*tf0-2*tf1)/((Ts*r0 + 2)*z + Ts*r0-2))
 Gfdfb = minreal(((Ts*sf0)*z + Ts*sf0)/((Ts*r0 + 2)*z + Ts*r0 - 2))
@@ -109,9 +106,8 @@ clear sf0 tf1 tf0
 
 % Clears up the workspace
 clear r0 s0 s1 w1 w2 w3 t0 t1 t2 g0 g1
+print_modelyze_control(Sc/Rc,Tc/Rc);
+print_control_struct( Gfdff, Gfdfb, Ifd, 1 )
 print_control(1,umax,imax,K,n,R,Gfdff,Gfdfb,Ifd);
-%print_control(1,umax,imax,K,n,R,Gdff,Gdfb);
 fprintf('\nCascaded position control PID-parameters:\n');
 fprintf('P = %f, I = %f, D = %f\n',cpP,cpI,cpD);
-fprintf('\nControl parameter struct:\n');
-print_control_struct( Gfdff, Gfdfb, Ifd, 1 )

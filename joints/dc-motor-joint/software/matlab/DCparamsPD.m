@@ -1,8 +1,6 @@
 % PD-position control parameters
 clear all; close all; clc
 
-% Different motors
-
 % % DCX19S
 % % Electrical and mechanical
 % R = 5.73 + 0.33; L = 0.329e-3; K = 0.0178; m_motor = 0.122;
@@ -11,32 +9,42 @@ clear all; close all; clc
 % % Limitations and poles
 % imax = 1.0; umax = 24; w = -6;
 
-% DCX22L
-% Electrical and mechanical
-R = 1.83 + 0.33; L = 0.192e-3; K = 0.0229; m_motor = 0.165;
-% Gearbox parameters
-n = 300564.0/1300.0; eta = 0.74; c = 0.1;
-% Limitations and poles
-imax = 2.5; umax = 24; w = -12;
-
-% % DCX26L
+% % DCX22L
 % % Electrical and mechanical
-% R = 0.74 + 0.33; L = 0.129e-3; K = 0.0214; m_motor = 0.412;
+% R = 1.83 + 0.33; L = 0.192e-3; K = 0.0229; m_motor = 0.165;
 % % Gearbox parameters
-% n = 328509/2197; eta = 0.75; c = 0.05;
+% n = 300564.0/1300.0; eta = 0.74; c = 0.1;
 % % Limitations and poles
-% imax = 1.5; umax = 24; w = -9; % w = -12, -9
+% imax = 2.5; umax = 24; w = -6;
+
+% DCX26L
+% Electrical and mechanical
+R = 0.74 + 0.33; L = 0.129e-3; K = 0.0214; m_motor = 0.412;
+% Gearbox parameters
+n = 328509/2197; eta = 0.75; c = 0.05;
+% Limitations and poles
+imax = 1.5; umax = 24; w = -9; % w = -12, -9
 
 % Friction modeling
 dv = 1e-5; % deadband
 k_f = [0.072091, 0.040963, -0.003493]; % Nonlinear friction [static, linear, quadratic]
 %k_f = [0 c 0]; % Linear friction
 
-% Inertias
+% Moment of inertia of the entire arm:
+% Beam that weights 0.4 kg/m
+% Two joints that weights m_jnt kg at L/3 and 2*L/3
+% Optional end load with mass m_end
+
+% Length = 1.0; th_step = 1; %th_step = 2*asin(1/(2*Length));
+% m_end = 1.0; m_jnt = 0.6 + m_motor;
+% J = 0.4*Length^3*1/3 + m_jnt*(Length*1/3)^2 + m_jnt*(Length*2/3)^2 + m_end*Length^2;
+
+% Length = 0.6; th_step = 2*asin(0.5/(2*Length));
+% m_end = 0.1; m_jnt = 0.6 + m_motor;
+% J = 0.4*Length^3*1/3 + m_jnt*(Length/2)^2 + m_end*Length^2;
+
 J = 0.05;
 %J = 0.2;
-
-%%%%%%%%%%%%%%%%%%%%% MATH BELOW %%%%%%%%%%%%%%%%%%%%%%%%
 
 disp(['Max speed: ',num2str(umax/(K*n) * 30/pi,'%0.1f'),' rpm']);
 
@@ -72,11 +80,27 @@ fprintf('Recommended Fs: %0.1f - %0.1f Hz\n',...
     (10*max(abs([w1,w2,w3])))/2/pi,(30*max(abs([w1,w2,w3])))/2/pi );
 
 
+% % Pole placement for error feedback, suboptimal because we can't position
+% % the zeroes so they will impact the performance
+% N = r0;
+% P = s0/r0;
+% D = -(s0-r0*s1)/(r0^2);
+% Gfb = minreal(P + D*N/(1+N/s));
+% Gc2 = minreal(Gfb*Gs/(1+Gfb*Gs));
+
 % Discrete controller
 enc_res = 2*pi/(128*n);  % Encoder resolution
 volt_res = 48/(128*4); % Voltage resolution from PWM
-Ts = 1 / 320;
+Ts = 1 / 625;
 z = tf('z',Ts);
+
+% Pure c2d 
+% Gdff = c2d(Tc/Rc,Ts,'zoh')
+% Gdfb = c2d(Sc/Rc,Ts,'zoh')
+
+% Backward differences:
+%Gdff = minreal(((t0 - Ts*t0*w3)*z - t0)/((Ts*r0 + 1)*z - 1)) 
+%Gdfb = minreal(((s1 + Ts*s0)*z - s1)/((Ts*r0+1)*z - 1))
 
 % Tustin:
 Gdff = minreal(((2*t0 - Ts*t0*w3)*z - 2*t0 - Ts*t0*w3)/((Ts*r0 + 2)*z + Ts*r0 - 2))
@@ -101,8 +125,7 @@ Gff = Tc/Rc
 Gfb = Sc/Rc
 clear Gff Gfb
 % Prints out control struct for software implementation
-%print_control(0,umax,imax,K,n,R,Gdff,Gdfb);
-fprintf('\nControl parameter struct:\n');
+print_modelyze_control(Sc/Rc,Tc/Rc);
 print_control_struct( Gdff, Gdfb )
-
+%print_control(0,umax,imax,K,n,R,Gdff,Gdfb);
 

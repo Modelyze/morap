@@ -89,6 +89,15 @@
 #define ACCEL_RAW_TO_REAL(AFS_SEL) ( 2.0*((float)(1 << AFS_SEL))/32767.0 )
 
 // Structs for storing results
+#define IMU_OVERFLOW_AX_OFFSET 0
+#define IMU_OVERFLOW_AY_OFFSET 1
+#define IMU_OVERFLOW_AZ_OFFSET 2
+#define IMU_OVERFLOW_GX_OFFSET 3
+#define IMU_OVERFLOW_GY_OFFSET 4
+#define IMU_OVERFLOW_GZ_OFFSET 5
+#define IMU_OVERFLOW_MX_OFFSET 6
+#define IMU_OVERFLOW_MY_OFFSET 7
+#define IMU_OVERFLOW_MZ_OFFSET 8
 typedef struct tag_imu_store_struct {
     float accX;
     float accY;
@@ -100,6 +109,7 @@ typedef struct tag_imu_store_struct {
     float mX;
     float mY;
     float mZ;
+    UINT16 overflow;
 } imu_store_struct;
 
 typedef struct tag_imu_raw_store_struct {
@@ -168,5 +178,9 @@ float get_control_signal(imu_store_struct* imu_data);
  */
 float kalman_filtering(imu_store_struct* imu_data, UINT8* reset);
 
+/*
+ * Complementary filter
+ */
+float complementary_filter(imu_store_struct* imu_data);
 
 #endif

@@ -20,7 +20,7 @@ imu_calib_struct calib = {.axBias = -291, .ayBias = 53, .azBias = -327, \
                           .asax = 128, .asay = 128, .asaz = 128};
 */
 imu_calib_struct calib = {.axBias = -74, .ayBias = 80, .azBias = -172, \
-                          .gxBias = -13, .gyBias = -88, .gzBias = -58, \
+                          .gxBias = -13, .gyBias = -88, .gzBias = 15, \
                           .mxBias = 0, .myBias = 0, .mzBias = 0,
                           .asax = 128, .asay = 128, .asaz = 128};
 // The accelerometers which point in the directions
@@ -45,8 +45,8 @@ UINT8 init_mpu9150(void) {
     data[0] = MPU9150_PWR_MGMT_1;
     data[1] = 0;
     ret_val |= TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
-    // Sets gyro output to +- 500dg/s
-    UINT8 FS_SEL = GYRO_FS_SEL_500dgps;
+    // Sets gyro output to specified values
+    UINT8 FS_SEL = GYRO_FS_SEL_1000dgps;
     data[0] = MPU9150_GYRO_CONFIG;
     data[1] = (FS_SEL << 3);
     ret_val |= TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
@@ -57,7 +57,7 @@ UINT8 init_mpu9150(void) {
     ret_val |= TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
     // Sets DLPF to a around 100 Hz, this ensures sampling rate of imu to be 1 kHz
     data[0] = MPU9150_CONFIG;
-    data[1] = (3 << 0);
+    data[1] = (4 << 0);
     ret_val |= TransmitData(MPU9150_I2C_ADDRESS,data,2); delay_ms(1);
 
     // Load device calibration values
@@ -108,13 +108,20 @@ UINT8 read_imu_data(imu_store_struct* imu_data) {
     }
 
     // Convert data to useful stuff
+    imu_data->overflow = 0;
     INT16 raw_accX = (INT16) (data[ACCX_OFFSET] << 8) | data[ACCX_OFFSET+1];
+    if (raw_accX < -32760 || raw_accX > 32760) imu_data->overflow |= (1 << IMU_OVERFLOW_AX_OFFSET);
     INT16 raw_accY = (INT16) (data[ACCY_OFFSET] << 8) | data[ACCY_OFFSET+1];
+    if (raw_accY < -32760 || raw_accY > 32760) imu_data->overflow |= (1 << IMU_OVERFLOW_AY_OFFSET);
     INT16 raw_accZ = (INT16) (data[ACCZ_OFFSET] << 8) | data[ACCZ_OFFSET+1];
+    if (raw_accZ < -32760 || raw_accZ > 32760) imu_data->overflow |= (1 << IMU_OVERFLOW_AZ_OFFSET);
     INT16 raw_temp = (INT16) (data[TEMP_OFFSET] << 8) | data[TEMP_OFFSET+1];
     INT16 raw_gyroX = (INT16) (data[GYROX_OFFSET] << 8) | data[GYROX_OFFSET+1];
+    if (raw_gyroX < -32760 || raw_gyroX > 32760) imu_data->overflow |= (1 << IMU_OVERFLOW_GX_OFFSET);
     INT16 raw_gyroY = (INT16) (data[GYROY_OFFSET] << 8) | data[GYROY_OFFSET+1];
+    if (raw_gyroY < -32760 || raw_gyroY > 32760) imu_data->overflow |= (1 << IMU_OVERFLOW_GY_OFFSET);
     INT16 raw_gyroZ = (INT16) (data[GYROZ_OFFSET] << 8) | data[GYROZ_OFFSET+1];
+    if (raw_gyroZ < -32760 || raw_gyroZ > 32760) imu_data->overflow |= (1 << IMU_OVERFLOW_GZ_OFFSET);
     imu_data->accX = calib.axScale*((float) raw_accX + (float) calib.axBias);
     imu_data->accY = calib.ayScale*((float) raw_accY + (float) calib.ayBias);
     imu_data->accZ = calib.azScale*((float) raw_accZ + (float) calib.azBias);
@@ -182,7 +189,7 @@ float bind_angle(float input) {
 }
 
 // Performs one step of kalman filtered position
-const float Qth = 0.0002, Qbias = 0.002, Rth = 0.02; // Noise covariances
+const float Qth = 1e-9, Qbias = 1e-9, Rth = 0.2; // Noise covariances
 const float dT = 1/((float) FS); // Sampling time
 float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
     // Performs one step of the kalman filter and returns the
@@ -213,7 +220,7 @@ float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
     Pb[3] = P[3] + Qbias;
 
     // Update
-    if(fabsf(get_abs_plane_acc(imu_data) - 1.0) < 0.05 ) {
+    if(fabsf(get_abs_plane_acc(imu_data) - 1.0) < 0.02 ) {
         // Calculate Kalman Gain
         Sinv = 1/(Pb[0] + Rth);
         K[0] = Pb[0]*Sinv;
@@ -238,6 +245,24 @@ float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
     }
 
     return x[0];
+}
+
+float complementary_filter(imu_store_struct* imu_data) {
+    static float angle = M_PI;
+    const float comp_const = 0.99;
+
+    if(fabsf(get_abs_plane_acc(imu_data) - 1.0) < 0.01 ) {
+        float gyro_angle = bind_angle(angle + get_control_signal(imu_data)*TS);
+        float meas_angle = get_measurement(imu_data);
+        if (gyro_angle - meas_angle > M_PI) meas_angle = 2*M_PI + meas_angle;
+        if (meas_angle - gyro_angle > M_PI) gyro_angle = 2*M_PI + gyro_angle;
+
+        angle = bind_angle(comp_const*gyro_angle + (1-comp_const)*meas_angle);
+    } else {
+        angle = bind_angle(angle + get_control_signal(imu_data)*TS);
+    }
+
+    return angle;
 }
 
 #endif

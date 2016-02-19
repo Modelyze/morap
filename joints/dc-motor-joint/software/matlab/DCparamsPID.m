@@ -63,6 +63,11 @@ volt_res = 48/(128*4); % Voltage resolution from PWM
 Ts = 1 / 625;
 z = tf('z',Ts);
 
+
+% c2d approach
+%Gdff = c2d(Tc/Rc,Ts,'zoh')
+%Gdfb = c2d(Sc/Rc,Ts,'zoh')
+
 % Tustin approach
 o1 = Ts*Ts*w1*w2*w3*w4;
 o2 = 2*Ts*w1*w2*w4;
@@ -102,6 +107,5 @@ clear r0 s0 s1 s2 w1 w2 w3 w4 t2 t1 t0 g0 g1
 % Gfb = Sc/Rc
 % clear Gff Gfb
 % Prints out control struct for software implementation
-print_control(0,umax,imax,K,n,R,Gfdff,Gfdfb,Ifd);
-fprintf('\nControl parameter struct:\n');
 print_control_struct( Gfdff, Gfdfb, Ifd, 0 )
+print_control(0,umax,imax,K,n,R,Gfdff,Gfdfb,Ifd);

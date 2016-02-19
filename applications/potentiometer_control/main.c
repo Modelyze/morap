@@ -231,7 +231,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         motor1_i2c_status = set_angular_velocity(NODE1_ID,send_value);
 #elif defined(MODE_DIRECT_VOLTAGE)
         send_value = (((float)read_adc(A0))-512)*24/512; // +- 24V
-        motor2_i2c_status = set_voltage(NODE1_ID,send_value);
+        motor1_i2c_status = set_voltage(NODE1_ID,send_value);
 #else
         send_value = (((float)read_adc(A0))-512)*1.5708/512; // +- 90 degrees
         motor1_i2c_status = set_angle(NODE1_ID,send_value);

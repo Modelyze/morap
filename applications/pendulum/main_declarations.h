@@ -18,7 +18,7 @@
 #define NODE_ID 1
 
 // Sampling rate (Hz)
-#define FS 100
+#define FS 160
 #define TS (1.0/((float) FS))
 
 // Lengths of each individual arms
@@ -59,6 +59,11 @@
 // Pulse trigger for oscilloscope trigger functions
 #define INIT_PULSE_TRIGGER() (TRISECLR = 1, LATECLR = 1)
 #define PULSE_TRIGGER() (LATESET = 1, LATECLR = 1)
+
+// Pin for measuring active times (27 on uno32)
+#define INIT_TS_PIN() (TRISECLR = (1 << 1), LATECLR = (1 << 1))
+#define TS_PIN_HIGH() (LATESET = (1 << 1))
+#define TS_PIN_LOW() (LATECLR = (1 << 1))
 
 // Conversations
 #define RAD_TO_DEG(rad) (57.295779*rad)

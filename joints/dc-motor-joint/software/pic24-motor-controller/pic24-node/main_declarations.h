@@ -17,7 +17,7 @@
 #define Fcy (Fosc/2)
 
 // Default sampling rate when the motor is disabled
-#define DEFAULT_FS 100
+#define DEFAULT_FS 200
 
 // Priorities for the different tasks, 0 - 7 with 7 being the highest
 #define PRIORITY_ENCODER    7   // Main encoder

@@ -26,6 +26,7 @@ UINT32 InitI2C(UINT32 system_clock, UINT32 i2c_clock)
 //        putsUART1(buf);
 //    }
     // Enable the I2C bus
+    ResetI2C();
     I2CEnable(ACTIVE_I2C_BUS, TRUE);
 
     return actualClock;
