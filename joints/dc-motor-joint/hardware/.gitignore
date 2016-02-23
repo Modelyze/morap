@@ -1,3 +1,4 @@
+*.xcf
 /misc/for_assemblies/
 /22mm_joint/source/22mm joint assembly.asm
 /22mm_joint/source/22mm joint assembly.cfg
