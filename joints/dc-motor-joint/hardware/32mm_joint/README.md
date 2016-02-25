@@ -26,10 +26,18 @@ All of the parts have been successfully printed in PLA-plastic, which is prefera
 ## Assembly
 The assembly procedure is mostly the same as with the the [22mm joint](../22mm_joint) with a few differences.
 
-One is that no metal connector for 8mm axis exists so one has to make their own.
+One is that no metal connector for 8mm axis exists so one has to make their own **8mm-shaft-attach**.
 ![Shaft connector 1](./img/Shaft_attach_1.JPG)
 
-An M5-nut should be inserted into the attacher and glued in place there to keep it in place. A screw can be used in order to make sure it's all the way in. The backside nut should also be glued in place. In addition, in order to somewhat increase the attachers ability to take loads it can be covered in epoxy glue.
+An M5-nut should be inserted into the attacher and glued in place there to keep it in place. A screw can be used in order to make sure it's all the way in. The backside filler nut ( **8mm extra nut** ) should also be glued in place. In addition, in order to somewhat increase the attachers ability to take loads it can be covered in epoxy glue.
 ![Shaft connector 2](./img/Shaft_attach_2.JPG)
 
-This shaft attacher is then pushed up the motor shaft as far as it can before fastening the rest of the joint.
+Insert **four M3-nuts** into the nut holders. If they fall out some small amount of glue can be applied just to keep them in place. An M5 tightening screw should also be inserted into the glued M5 nut, here an extra nut from the **HUB-06 wheel hub** is used but a general short M5 screw should do the trick.
+
+This assembly is then pressed onto the motor shaft all the way and tightened onto it.
+![Shaft connector 3](./img/Shaft_attach_3.JPG)
+
+The entire underside is then screwed onto the shaft attacher similarly as the [22mm joint](../22mm_joint) using **four 10mm M3 screws**.
+
+If an additional perpendicular attachment point is required an **32mm bottom connector** can be attached to the bottom by the same screws used to fasten the bottom to the shaft attacher.
+![Shaft connector 4](./img/Shaft_attach_4.JPG)

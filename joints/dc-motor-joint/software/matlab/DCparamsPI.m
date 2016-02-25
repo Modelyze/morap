@@ -23,7 +23,7 @@ k_f = [0.072091, 0.040963, -0.003493]; % Nonlinear friction [static, linear, qua
 %k_f = [0 c 0]; % Linear friction
 
 % Load inertia
-J = 0.14;
+J = 0.1;
 disp(['Max speed: ',num2str(umax/(K*n) * 30/pi,'%0.1f'),' rpm']);
 
 % transfer function of dc-motor:
@@ -74,7 +74,7 @@ w_traj = @(th,t,a) [t*a/2+sqrt((t*a/2)^2 - th*a), t*a/2-sqrt((t*a/2)^2 - th*a)];
 % Discrete controller
 enc_res = 2*pi/(128*n);  % Encoder resolution
 volt_res = 48/(128*4); % Voltage resolution from PWM
-Ts = 1/500; %1 / 625;
+Ts = 1/250; %1 / 625;
 z = tf('z',Ts);
 
 

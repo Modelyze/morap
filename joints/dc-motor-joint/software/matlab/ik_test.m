@@ -24,7 +24,8 @@ function [a1,a2] = ik_calc(x,y,L1,L2)
 end
 
 % Arm lengths
-L1 = 0.257; L2 = 0.380;
+%L1 = 0.257; L2 = 0.380;
+L1 = (0.3 + 0.057 + 0.014), L2 = (0.3 + 0.026),
 
 
 % Sets up main figure
@@ -61,7 +62,9 @@ Ts = 1/30;
 % [ang_1,ang_2] = ik_calc(x_wanted,y_wanted,L1,L2);
 
 v = 0.5; %m/s
-R = (0.25*(L1+L2)); x_0 = (0.66*(L1+L2)); y_0 = 0;
+%R = (0.25*(L1+L2)); x_0 = (0.66*(L1+L2)); y_0 = 0;
+%R = 0.15; x_0 = 0.5; y_0 = 0.2;
+R = 0.15; x_0 = 0.697-R; y_0 = 0;
 tv = 0:Ts:19;
 x_wanted = x_0 + R*cos(v/R*tv);
 y_wanted = y_0 + R*sin(v/R*tv);
@@ -86,7 +89,8 @@ for i = 1:length(ang_1)
     fprintf('a1 = %0.2f, a2 = %0.2f\n',ang_1(i),ang_2(i));
     x1 = L1*cosd(ang_1(i)); y1 = L1*sind(ang_1(i));
     x2 = x1 + L2*cosd(ang_2(i)+ang_1(i)); y2 = y1 + L2*sind(ang_2(i)+ang_1(i));
-
+    
+    if ~ishandle(fig), break; end
     set(p(1),'XData',[0 x1],'YData',[0 y1]);
     set(p(2),'XData',[x1 x2],'YData',[y1 y2]);
     if exist('y_wanted','var')
@@ -100,6 +104,10 @@ for i = 1:length(ang_1)
     a1_old = ang_1(i); a2_old = ang_2(i);
     %fprintf('x = %0.2f, y = %0.2f \n',x2,y2);
     pause(Ts);
+end
+if ~ishandle(fig)
+    figure;
+    plot(tv,ang_1,'-r',tv,ang_2,'-b');
 end
 
 disp('done');

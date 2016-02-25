@@ -106,6 +106,30 @@ int main(void) {
         putsUART1("------------ IMU-INIT FAILED! ------------\n\r");
     YELLOW_LED_OFF();
 
+    // Programs control parameters (DCX26L)
+    control_params_struct controlParams =
+    {
+        .cMode = 1,
+        .Fs = 250,
+        .nd = 2, .d = {0.1059,0.1059},
+        .nc = 2, .c = {-1.4265,2.1560},
+        .nf = 1, .f = {-0.6070},
+        .I = 0.3809
+    };
+    UINT8 i2c_status = program_control_params(NODE_ID,&controlParams);
+    if (i2c_status == I2C_STATUS_SUCCESFUL) {
+        UINT8 prog_status;
+        i2c_status = get_control_prog_status(NODE_ID, &prog_status);
+        if(i2c_status == I2C_STATUS_SUCCESFUL && prog_status == MOTOR_CONTROL_PROGRAMMING_STATUS_SUCCESS) {
+            sprintf(buf,"Controller programming on node %d successful\n\r",NODE_ID);
+            putsUART1(buf);
+        } else {
+            sprintf(buf,"Controller programming on node %d FAILED!!!!!\n\r",NODE_ID);
+            putsUART1(buf);
+        }
+    } else {
+        putsUART1("No motor found on the bus\n\r");
+    }
 
     // says hello
     sprintf(buf,"Systems initiated (T1 period = %d)\n\r",T1_period);
@@ -172,7 +196,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     
     static UINT8 control_state = CONTROL_STATE_PASSIVE;
     static UINT16 switch_count = 0;
-    static float th2, th1, output, ref_th2=0;
+    static float th2, th1, output;
     if (imu_i2c_status == I2C_STATUS_SUCCESFUL) {
         if (kalman_reset == 1) putsUART1("Resetting kalman filter!\n\r");
         th2 = kalman_filtering(&imu_data,&kalman_reset);
@@ -206,7 +230,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
                         putsUART1(buf);
                         putsUART1("th1,th2,output,rate\n\r");
                         //reference = PID_feedback_loop(0.0,th2,&ref_th2,1); // Resets pid loop
-                        output = state_feedback_loop(0.0,th2,0.0,&imu_data,1);
+                        output = state_feedback_loop(0.0,th2,0.0,&imu_data,1); // Resets control loop
                         th1 = 0;
                         control_state = CONTROL_STATE_ACTIVE;
                     } else {
@@ -227,9 +251,9 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
                 //reference = PID_feedback_loop(th1,th2,&ref_th2,0);
                 output = state_feedback_loop(th1,th2,0.0,&imu_data,0);
                 LED5_ON(); PULSE_TRIGGER();
-                //mtr_i2c_status = set_angular_velocity(NODE_ID, output);
+                mtr_i2c_status = set_angular_velocity(NODE_ID, output);
                 //mtr_i2c_status = set_torque(NODE_ID, output);
-                mtr_i2c_status = set_voltage(NODE_ID, output);
+                //mtr_i2c_status = set_voltage(NODE_ID, output);
                 LED5_OFF();
 
                 // Exit state if any of these conditions are fulfilled
@@ -437,8 +461,7 @@ float PID_feedback_loop(float th1, float th2, float* rth2, UINT8 reset) {
 
 float state_feedback_loop(float th1, float th2, float r, imu_store_struct* imu_data, UINT8 reset) {
     // state feedback parameters: states = [th1,th2,th1_dot,th2_dot]
-    //const float L[] = {-0.3162, 26.0670, -6.5202, 4.3940};
-    const float L[] = {-0.3162, 26.0670, -6.5202, 4.3940};
+    const float L[] = {-0.3162, 10.8541, -2.1175, 1.8488};
     const float Nr = -0.3162;
 
     static float th1_old = 0, th2_old = 0;

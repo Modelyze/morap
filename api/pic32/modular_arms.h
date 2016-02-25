@@ -269,7 +269,7 @@ UINT8 node_write_float(UINT8 address, UINT8 write_id, float write_data);
  *  UINT8 i2c_status = program_control_params(1,&controlParams);
  *  if (i2c_status == 0) {
  *      UINT8 prog_status;
- *      i2c_status = read_control_prog_status(1, &prog_status);
+ *      i2c_status = get_control_prog_status(1, &prog_status);
  *      if(i2c_status == I2C_STATUS_SUCCESFUL && prog_status == MOTOR_CONTROL_PROGRAMMING_STATUS_SUCCESS) {
  *          // SUCCESS
  *      }
@@ -294,7 +294,7 @@ UINT8 program_control_params(UINT8 node_id, control_params_struct* new_params);
  *  UINT8 i2c_status = tune_control_params(1,TUNING_PD_POSITION_CONTROLLER,TUNING_MEDIUM_INERTIA,TUNING_POSITION_POLE_SLOW);
  *  if(i2c_status == I2C_STATUS_SUCCESFUL) {
  *      UINT8 prog_status;
- *      i2c_status = read_control_prog_status(1, &prog_status);
+ *      i2c_status = get_control_prog_status(1, &prog_status);
  *      if(i2c_status == I2C_STATUS_SUCCESFUL && prog_status == MOTOR_CONTROL_PROGRAMMING_STATUS_SUCCESS) {
  *          // SUCCESS
  *      }

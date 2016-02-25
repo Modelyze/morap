@@ -76,7 +76,7 @@ elseif strcmpi(input,'dc-motor')
     Q(1,1) = 1;   % th2 weight
     Q(2,2) = 1;   % th1 weight
 elseif strcmpi(input,'speed')
-    R = 1;        %   
+    R = 10;        %   
     Q(1,1) = 1;   % th2 weight
     Q(2,2) = 1;   % th1 weight
 end
