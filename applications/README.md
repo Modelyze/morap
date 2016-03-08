@@ -28,7 +28,7 @@ position. It also comes with an preliminary implementation of a path
 following algorithm in which the user can define a path that the arm
 should follow. This application is still work in progress.
 
-[Pendulum](./pendulum) is a work-in-progress application that tries to
+[Inverted pendulum](./pendulum) is a work-in-progress application that tries to
 balance an inverted pendulum. It utilizes a
 MPU9150 IMU for measuring the angle of the pendulum and is
 controlled by a state-feedback controller.
@@ -40,6 +40,6 @@ identifiers of the target motors or the arm lengths. More information is availab
 
 To run the applications above, you need to download and install the following development environment and compiler:
 
-* [MPLAB IDE](http://www.microchip.com/mplab/mplab-x-ide). This is the main development environment for PIC32 microprocessors from Microchip.
+* [MPLAB IDE](http://www.microchip.com/mplab/mplab-x-ide). This is the main development environment for the PIC32 microprocessors from Microchip.
 * [XC32 compiler](http://www.microchip.com/mplab/compilers). The main cross compiler. There is a free compiler version available.
 * [PIC32 Peripheral Library](http://www.microchip.com/SWLibraryWeb/product.aspx?product=PIC32%20Peripheral%20Library). This library is necessary if you use XC32 compiler 1.4 or later.
