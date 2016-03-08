@@ -35,3 +35,11 @@ controlled by a state-feedback controller.
 
 In most of the applications you can change some definitions to change the
 identifiers of the target motors or the arm lengths. More information is available at the beginning of each main source file.
+
+## Installation
+
+To run the applications above, you need to download and install the following development environment and compiler:
+
+* [MPLAB IDE](http://www.microchip.com/mplab/mplab-x-ide), the main development environment for PIC32 microprocessors from Microchip.
+* [XC32 compiler](http://www.microchip.com/mplab/compilers). There is a free compiler version available.
+* [PIC32 Peripheral Library](http://www.microchip.com/SWLibraryWeb/product.aspx?product=PIC32%20Peripheral%20Library). This library is necessary if you use XC32 compiler 1.4 or later.
