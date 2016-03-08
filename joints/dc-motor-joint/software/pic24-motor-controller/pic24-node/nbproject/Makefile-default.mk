@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=LMD18200_drivers.c control_tuner.c eeprom_storage.c main.c pic24_i2c_slave.c
+SOURCEFILES_QUOTED_IF_SPACED=LMD18200_drivers.c control_tuner.c eeprom_storage.c main.c pic24_i2c_slave.c main_init_functions.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/LMD18200_drivers.o ${OBJECTDIR}/control_tuner.o ${OBJECTDIR}/eeprom_storage.o ${OBJECTDIR}/main.o ${OBJECTDIR}/pic24_i2c_slave.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/LMD18200_drivers.o.d ${OBJECTDIR}/control_tuner.o.d ${OBJECTDIR}/eeprom_storage.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/pic24_i2c_slave.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/LMD18200_drivers.o ${OBJECTDIR}/control_tuner.o ${OBJECTDIR}/eeprom_storage.o ${OBJECTDIR}/main.o ${OBJECTDIR}/pic24_i2c_slave.o ${OBJECTDIR}/main_init_functions.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/LMD18200_drivers.o.d ${OBJECTDIR}/control_tuner.o.d ${OBJECTDIR}/eeprom_storage.o.d ${OBJECTDIR}/main.o.d ${OBJECTDIR}/pic24_i2c_slave.o.d ${OBJECTDIR}/main_init_functions.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/LMD18200_drivers.o ${OBJECTDIR}/control_tuner.o ${OBJECTDIR}/eeprom_storage.o ${OBJECTDIR}/main.o ${OBJECTDIR}/pic24_i2c_slave.o
+OBJECTFILES=${OBJECTDIR}/LMD18200_drivers.o ${OBJECTDIR}/control_tuner.o ${OBJECTDIR}/eeprom_storage.o ${OBJECTDIR}/main.o ${OBJECTDIR}/pic24_i2c_slave.o ${OBJECTDIR}/main_init_functions.o
 
 # Source Files
-SOURCEFILES=LMD18200_drivers.c control_tuner.c eeprom_storage.c main.c pic24_i2c_slave.c
+SOURCEFILES=LMD18200_drivers.c control_tuner.c eeprom_storage.c main.c pic24_i2c_slave.c main_init_functions.c
 
 
 CFLAGS=
@@ -117,6 +117,13 @@ ${OBJECTDIR}/pic24_i2c_slave.o: pic24_i2c_slave.c  nbproject/Makefile-${CND_CONF
 	${MP_CC} $(MP_EXTRA_CC_PRE)  pic24_i2c_slave.c  -o ${OBJECTDIR}/pic24_i2c_slave.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/pic24_i2c_slave.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/pic24_i2c_slave.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
+${OBJECTDIR}/main_init_functions.o: main_init_functions.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/main_init_functions.o.d 
+	@${RM} ${OBJECTDIR}/main_init_functions.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  main_init_functions.c  -o ${OBJECTDIR}/main_init_functions.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main_init_functions.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/main_init_functions.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
 else
 ${OBJECTDIR}/LMD18200_drivers.o: LMD18200_drivers.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -152,6 +159,13 @@ ${OBJECTDIR}/pic24_i2c_slave.o: pic24_i2c_slave.c  nbproject/Makefile-${CND_CONF
 	@${RM} ${OBJECTDIR}/pic24_i2c_slave.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  pic24_i2c_slave.c  -o ${OBJECTDIR}/pic24_i2c_slave.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/pic24_i2c_slave.o.d"        -g -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/pic24_i2c_slave.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/main_init_functions.o: main_init_functions.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/main_init_functions.o.d 
+	@${RM} ${OBJECTDIR}/main_init_functions.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  main_init_functions.c  -o ${OBJECTDIR}/main_init_functions.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main_init_functions.o.d"        -g -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/main_init_functions.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 
