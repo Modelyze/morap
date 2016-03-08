@@ -4,15 +4,15 @@ A power shield designed to fit on an UNO32 designed to take input from two 4 mm 
 Contains both Gerber and eagle source files
 
 ## Functions
-Inputs selectable voltage Vcc (>6V) through two 4 mm lab cables (Vcc and GND)
-Converts Vcc to 5V and 3.3V using two switching regulators
-Outputs Vcc, 5V, 3.3V, GND, SCL, SDA through a system standard 6 pin connector
-Contains pullup resistors for SCL and SDA line
-Contains two buttons connected to UNO32 pins 2 & 7 (RD8 & RD9)
-Contains three leds on UNO32 pins 3, 5 & 6 (RD0, RD1 & RD2) and one power LED.
+* Inputs selectable voltage Vcc (>6V) through two 4 mm lab cables (Vcc and GND)
+* Converts Vcc to 5V and 3.3V using two switching regulators
+* Outputs Vcc, 5V, 3.3V, GND, SCL, SDA through a system standard 6 pin connector
+* Contains pullup resistors for SCL and SDA line
+* Contains two buttons connected to UNO32 pins 2 & 7 (RD8 & RD9)
+* Contains three leds on UNO32 pins 3, 5 & 6 (RD0, RD1 & RD2) and one power LED.
 
 ## Schematic
-![schematic](power_shield_schematic.png)
+![schematic](./power_shield_schematic.png)
 
 ## Bill of Material
 n | value | device | package
