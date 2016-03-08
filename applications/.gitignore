@@ -1,6 +1,9 @@
 draw_test/build/
 draw_test/dist/
 draw_test/nbproject/private/
+data_logger/build/
+data_logger/build//dist/
+data_logger/build//nbproject/private/
 inverse_kinematics/build/
 inverse_kinematics/dist/
 inverse_kinematics/nbproject/private/

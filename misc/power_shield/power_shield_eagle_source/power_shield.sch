@@ -17087,8 +17087,8 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 </classes>
 <parts>
 <part name="U$1" library="mylib" deviceset="UNO32_SHIELD" device=""/>
-<part name="L1" library="rcl" deviceset="L-US" device="6000-XXX-RC" value="100mH"/>
-<part name="L2" library="rcl" deviceset="L-US" device="6000-XXX-RC" value="100mH"/>
+<part name="L1" library="rcl" deviceset="L-US" device="6000-XXX-RC" value="0.1mH"/>
+<part name="L2" library="rcl" deviceset="L-US" device="6000-XXX-RC" value="0.1mH"/>
 <part name="C1" library="rcl" deviceset="CPOL-EU" device="150CLZ-1010" value="1000uF"/>
 <part name="C2" library="rcl" deviceset="CPOL-EU" device="150CLZ-1010" value="1000uF"/>
 <part name="C3" library="rcl" deviceset="CPOL-EU" device="150CLZ-1010" value="100uF"/>

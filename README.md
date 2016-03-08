@@ -17,7 +17,7 @@ The system has one master which controls all of the individual sub-systems and h
 ## Software Design
 For actuation each joint have built in control electronics and tuning algorithms, providing an intuitive and easy way to control the system. The communication protocol is listed in [here](./api/) and an API implementation on a PIC32 microcontroller is listed in section [here](./api/pic32/).
 
-Some software examples are listed in [link to applications].
+Some software examples are listed [here](./applications).
 
 ## Hardware Design
 The hardware is divided into joints, links and end-effectors. 
