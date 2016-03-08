@@ -11,6 +11,6 @@ The following figure shows the CAD file when it is assembled
 
 and the following figure shows the exploded view of the parts
 (excluding the slip ring).
-![alt text](hardware/asm-exploded.jpg)
+![alt text](hardware/asm-explode.jpg)
 
 
