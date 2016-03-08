@@ -1,4 +1,4 @@
-# Applications of the Modular Arm on an PIC32
+# Applications using a PIC32 microcontroller
 
 Some example applications using the PIC32 API. These applications are
 implemented and tested on the ChipKIT UNO32 development board.
@@ -13,8 +13,8 @@ motors. Each motor can be controlled by a separate potentiometer.
 [Draw test](./draw_test) performs a simple control sequence in which
 it positions an optional pen end-effector at three different
 angles. This allows the user to evaluate the repeatability of the
-system and identify eventual drifts in the encoders. If two motors are
-found on the system it will use both for the control sequence.
+system and to identify potential drifts in the encoders. If two motors are
+found on the system, it will use both for the control sequence.
 
 [Data logger](./data_logger) generates log data that can be used for
 parameter extraction.  When using the application, save the log data
@@ -26,7 +26,7 @@ controlling a 2D robotic arm with two joints. The user supplies an x-y
 coordinate and it calculates the required angles to reach that
 position. It also comes with an preliminary implementation of a path
 following algorithm in which the user can define a path that the arm
-should to follow. This application is still work-in-progress.
+should follow. This application is still work in progress.
 
 [Pendulum](./pendulum) is a work-in-progress application that tries to
 balance an inverted pendulum. It utilizes a
