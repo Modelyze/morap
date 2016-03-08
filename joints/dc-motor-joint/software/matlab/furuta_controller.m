@@ -2,9 +2,9 @@
 clear all; close all; clc
 % params
 g = 9.81;
-L1 = 0.3735; l1 = 0.0778848015195; m1 = 1.15301; J1zz = 0.0652201997613;
-L2 = 0.433; l2 = 0.192564656882; m2 = 0.20168; J2xx = 1.476e-05; 
-J2yy = 0.00392556477687; J2zz = 0.00392556477687;
+L1 = 0.2735; l1 = 0.0539785034283; m1 = 1.11134; J1zz = 0.0539410345514;
+L2 = 0.533; l2 = 0.242297308404; m2 = 0.24335; J2xx = 1.845e-05; 
+J2yy = 0.00699995483974; J2zz = 0.00699995483974;
 
 b1 = 0.005; b2 = 0.002; % friction
 % Dc-motor equations
@@ -18,7 +18,7 @@ J1 = J1zz + m1*l1*l1;
 J2 = mean([J2yy,J2zz]) + m2*l2*l2;
 J0 = J1 + m2*L1*L1;
 
-input = 'speed';
+input = 'dc-motor';
 
 % State space model linearized around unstable position with torque input
 p = (J0*J2 - m2*m2*L1*L1*l2*l2);

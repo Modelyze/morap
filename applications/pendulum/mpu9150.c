@@ -189,7 +189,7 @@ float bind_angle(float input) {
 }
 
 // Performs one step of kalman filtered position
-const float Qth = 1e-9, Qbias = 1e-9, Rth = 0.2; // Noise covariances
+const float Qth = 1e-6, Qbias = 1e-6, Rth = 0.2; // Noise covariances
 const float dT = 1/((float) FS); // Sampling time
 float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
     // Performs one step of the kalman filter and returns the

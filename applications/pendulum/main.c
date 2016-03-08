@@ -116,6 +116,7 @@ int main(void) {
         .nf = 1, .f = {-0.6070},
         .I = 0.3809
     };
+    set_calibration_status_unknown(NODE_ID);
     UINT8 i2c_status = program_control_params(NODE_ID,&controlParams);
     if (i2c_status == I2C_STATUS_SUCCESFUL) {
         UINT8 prog_status;
@@ -251,9 +252,9 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
                 //reference = PID_feedback_loop(th1,th2,&ref_th2,0);
                 output = state_feedback_loop(th1,th2,0.0,&imu_data,0);
                 LED5_ON(); PULSE_TRIGGER();
-                mtr_i2c_status = set_angular_velocity(NODE_ID, output);
+                //mtr_i2c_status = set_angular_velocity(NODE_ID, output);
                 //mtr_i2c_status = set_torque(NODE_ID, output);
-                //mtr_i2c_status = set_voltage(NODE_ID, output);
+                mtr_i2c_status = set_voltage(NODE_ID, output);
                 LED5_OFF();
 
                 // Exit state if any of these conditions are fulfilled
@@ -461,12 +462,15 @@ float PID_feedback_loop(float th1, float th2, float* rth2, UINT8 reset) {
 
 float state_feedback_loop(float th1, float th2, float r, imu_store_struct* imu_data, UINT8 reset) {
     // state feedback parameters: states = [th1,th2,th1_dot,th2_dot]
-    const float L[] = {-0.3162, 10.8541, -2.1175, 1.8488};
-    const float Nr = -0.3162;
+//    const float L[] = {-1.0000, 49.5131, -6.8003, 9.3736};
+    const float L[] = {0, 49.5131, 0, 9.3736};
+    const float Nr = -1.0000;
 
     static float th1_old = 0, th2_old = 0;
     th1 = -1*th1; // Fixes signs
 
+    //th2 = 0.0;
+    
     if (reset){
         th1_old = th1;
         th2_old = th2;
