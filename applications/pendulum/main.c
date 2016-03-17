@@ -38,6 +38,7 @@
 unsigned char buf[256]; // OUTPUT BUFFER FOR UART
 imu_store_struct imu_data; // Store measurements
 imu_raw_store_struct imu_raw_data;
+BOOL imu_is_init = FALSE;
 
 int main(void) {
     // Configure the device for maximum performance but do not change the PBDIV
@@ -102,8 +103,12 @@ int main(void) {
     putsUART1("INITIATES IMU\n\r");
     PULSE_TRIGGER();
     UINT8 ig = init_mpu9150();
-    if (ig != I2C_STATUS_SUCCESFUL)
+    if (ig != I2C_STATUS_SUCCESFUL) {
         putsUART1("------------ IMU-INIT FAILED! ------------\n\r");
+        imu_is_init = FALSE;
+    } else {
+        imu_is_init = TRUE;
+    }
     YELLOW_LED_OFF();
 
     // Programs control parameters (DCX26L)
@@ -212,7 +217,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         switch (control_state) {
             case CONTROL_STATE_PASSIVE:
                 YELLOW_LED_OFF();
-                if (fabsf(th2) < TH2_ACTIVATION_ANGLE ) {
+                if (fabsf(th2) < TH2_ACTIVATION_ANGLE && imu_is_init) {
                     control_state = CONTROL_STATE_SWITCHING;
                     switch_count = 0;
                 }
@@ -287,6 +292,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         kalman_reset = 1;
         control_state = CONTROL_STATE_PASSIVE;
         RED_LED_ON();
+        imu_is_init = FALSE;
     }
     // MANUAL OVERRIDE
     if (GET_BUT1() || GET_BUT2()) {
