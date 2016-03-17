@@ -113,18 +113,8 @@ int main(void) {
 
     set_calibration_status_unknown(NODE_ID);
     
-    // Programs control parameters (DCX26L)
-    /* control_params_struct controlParams =
-    {
-       .cMode = 1,
-        .Fs = 250,
-        .nd = 2, .d = {0.1059,0.1059},
-        .nc = 2, .c = {-1.4265,2.1560},
-        .nf = 1, .f = {-0.6070},
-        .I = 0.3809
-    };
-    
-    UINT8 i2c_status = program_control_params(NODE_ID,&controlParams);
+    // Tune speed control parameters (NOTE: make sure it can actually reach the desired pole)
+    UINT8 i2c_status = tune_control_params(NODE_ID,TUNING_PI_SPEED_CONTROLLER,0.1,50);
     if (i2c_status == I2C_STATUS_SUCCESFUL) {
         UINT8 prog_status;
         i2c_status = get_control_prog_status(NODE_ID, &prog_status);
@@ -138,7 +128,6 @@ int main(void) {
     } else {
         putsUART1("No motor found on the bus\n\r");
     }
-     */
     // says hello
     sprintf(buf,"Systems initiated (T1 period = %d)\n\r",T1_period);
     putsUART1(buf);

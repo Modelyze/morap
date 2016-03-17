@@ -226,6 +226,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
     // Send references to motors if they're enabled
     float send_value;
     if (motor1_i2c_status == I2C_STATUS_SUCCESFUL && motor1_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
+        LED5_ON();
 #if defined(MODE_SPEED_FEEDBACK)
         send_value = (((float)read_adc(A0))-512)*6.2831/512; // +- 360 deg/s
         motor1_i2c_status = set_angular_velocity(NODE1_ID,send_value);
@@ -236,9 +237,11 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         send_value = (((float)read_adc(A0))-512)*1.5708/512; // +- 90 degrees
         motor1_i2c_status = set_angle(NODE1_ID,send_value);
 #endif
+        LED5_OFF();
         RED_LED_ON();
     } else RED_LED_OFF();
     if (motor2_i2c_status == I2C_STATUS_SUCCESFUL && motor2_status != MOTOR_STATUS_ENCODER_CALIBRATION_NEEDED) {
+        LED5_ON();
 #if defined(MODE_SPEED_FEEDBACK)
         send_value = (((float)read_adc(A1))-512)*6.2831/512; // +- 360 deg/s
         motor2_i2c_status = set_angular_velocity(NODE2_ID,send_value);
@@ -249,6 +252,7 @@ void __ISR(_TIMER_1_VECTOR, IPL2AUTO) _Timer1Handler(void) {
         send_value = (((float)read_adc(A1))-512)*1.5708/512; // +- 90 degrees
         motor2_i2c_status = set_angle(NODE2_ID,send_value);
 #endif
+        LED5_OFF();
         YELLOW_LED_ON();
     } else YELLOW_LED_OFF();
 
