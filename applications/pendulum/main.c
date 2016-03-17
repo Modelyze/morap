@@ -470,9 +470,13 @@ float PID_feedback_loop(float th1, float th2, float* rth2, UINT8 reset) {
 
 float state_feedback_loop(float th1, float th2, float r, imu_store_struct* imu_data, UINT8 reset) {
     // state feedback parameters: states = [th1,th2,th1_dot,th2_dot]
+#if NODE_ID == 1
     const float L[] = {-1.0000, 49.5131, -6.8003, 9.3736};
-//    const float L[] = {0, 49.5131, 0, 9.3736};
     const float Nr = -1.0000;
+#elif NODE_ID == 2
+    const float L[] = {-1.0000, 79.0961, -10.9884, 14.9896};
+    const float Nr = -1.0000;
+#endif
 
     static float th1_old = 0, th2_old = 0;
     th1 = -1*th1; // Fixes signs

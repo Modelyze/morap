@@ -10,8 +10,14 @@ b1 = 0.005; b2 = 0.002; % friction
 
 % Dc-motor equations
 mtr = struct();
-mtr.K = 0.0214; mtr.R = 0.74+0.33; mtr.L = 0.129e-3; 
-mtr.n = 328509/2197; mtr.eta = 0.75;
+% DCX26L 150
+% mtr.K = 0.0214; mtr.R = 0.74+0.33; mtr.L = 0.129e-3; 
+% mtr.n = 328509/2197; mtr.eta = 0.75;
+
+% DCX22L 232
+mtr.K = 0.0229; mtr.R = 1.83 + 0.33; mtr.L = 0.192e-3; 
+mtr.n = 300564.0/1300.0; mtr.eta = 0.74;
+
 % Stuff
 w_vel = 50; % Pole of speed controller
 % Simplified inertias
