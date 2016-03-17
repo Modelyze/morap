@@ -13,7 +13,7 @@
  * preserve the internal eeprom. This is done
  * in MPLABX for the PICKIT3 by:
  * Run -> Set Project Configuration -> Customize ->
- * -> PICKIT3 -> Conserve EEPROM Memory
+ * -> PICKIT3 -> Preserve EEPROM Memory
  *
  * Created on August 24, 2015, 1:25 PM
  */

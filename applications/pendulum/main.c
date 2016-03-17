@@ -111,17 +111,19 @@ int main(void) {
     }
     YELLOW_LED_OFF();
 
+    set_calibration_status_unknown(NODE_ID);
+    
     // Programs control parameters (DCX26L)
-    control_params_struct controlParams =
+    /* control_params_struct controlParams =
     {
-        .cMode = 1,
+       .cMode = 1,
         .Fs = 250,
         .nd = 2, .d = {0.1059,0.1059},
         .nc = 2, .c = {-1.4265,2.1560},
         .nf = 1, .f = {-0.6070},
         .I = 0.3809
     };
-    set_calibration_status_unknown(NODE_ID);
+    
     UINT8 i2c_status = program_control_params(NODE_ID,&controlParams);
     if (i2c_status == I2C_STATUS_SUCCESFUL) {
         UINT8 prog_status;
@@ -136,7 +138,7 @@ int main(void) {
     } else {
         putsUART1("No motor found on the bus\n\r");
     }
-
+     */
     // says hello
     sprintf(buf,"Systems initiated (T1 period = %d)\n\r",T1_period);
     putsUART1(buf);

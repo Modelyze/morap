@@ -15,7 +15,7 @@
 // Sampling frequency
 
 // Id's of the motors to be controlled
-#define NODE_ID 1
+#define NODE_ID 2
 
 // Sampling rate (Hz)
 #define FS 160
