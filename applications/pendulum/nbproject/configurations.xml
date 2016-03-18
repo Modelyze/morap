@@ -8,6 +8,7 @@
       <itemPath>../../api/pic32/modular_arms.h</itemPath>
       <itemPath>../../api/pic32/pic32_i2c.h</itemPath>
       <itemPath>mpu9150.h</itemPath>
+      <itemPath>motion_control.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -21,6 +22,7 @@
       <itemPath>../../api/pic32/modular_arms.c</itemPath>
       <itemPath>../../api/pic32/pic32_i2c.c</itemPath>
       <itemPath>mpu9150.c</itemPath>
+      <itemPath>motion_control.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

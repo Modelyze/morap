@@ -18,7 +18,7 @@
 #define NODE_ID 2
 
 // Sampling rate (Hz)
-#define FS 160
+#define FS 200
 #define TS (1.0/((float) FS))
 
 // Lengths of each individual arms

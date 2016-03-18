@@ -2,7 +2,7 @@
 clear all; close all; clc
 % params
 g = 9.81;
-L1 = 0.2735; l1 = 0.0539785034283; m1 = 1.11134; J1zz = 0.0539410345514;
+L1 = 0.264; l1 = 0.0758686604953; m1 = 0.75834; J1zz = 0.0596976109186;
 L2 = 0.533; l2 = 0.242297308404; m2 = 0.24335; J2xx = 1.845e-05; 
 J2yy = 0.00699995483974; J2zz = 0.00699995483974;
 
@@ -25,7 +25,7 @@ J1 = J1zz + m1*l1*l1;
 J2 = mean([J2yy,J2zz]) + m2*l2*l2;
 J0 = J1 + m2*L1*L1;
 
-input = 'dc-motor';
+input = 'voltage'; % 'torque', 'voltage', 'speed'
 
 % State space model linearized around unstable position with torque input
 p = (J0*J2 - m2*m2*L1*L1*l2*l2);
@@ -47,7 +47,7 @@ if strcmpi(input,'torque')
     A = [0 0 1 0; 0 0 0 1; A_31 A_32 A_33 A_34; A_41 A_42 A_43 A_44];
     B = [0;0;B_31;B_41];
     inputs = {'tau1'};
-elseif strcmpi(input,'dc-motor')
+elseif strcmpi(input,'voltage')
     A_33 = A_33 - B_31*mtr.K*mtr.K*mtr.n*mtr.n*mtr.eta/mtr.R;
     A_43 = A_43 - B_41*mtr.K*mtr.K*mtr.n*mtr.n*mtr.eta/mtr.R;
     A = [0 0 1 0; 0 0 0 1; A_31 A_32 A_33 A_34; A_41 A_42 A_43 A_44];
@@ -78,17 +78,17 @@ if strcmpi(input,'torque')
     R = 1;
     Q(1,1) = 10;  % th2 weight
     Q(2,2) = 4;   % th1 weight
-elseif strcmpi(input,'dc-motor')
+elseif strcmpi(input,'voltage')
     R = 1;        %   
     Q(1,1) = 1;   % th2 weight
     Q(2,2) = 1;   % th1 weight
 elseif strcmpi(input,'speed')
     R = 10;        %   
-    Q(1,1) = 1;   % th2 weight
+    Q(1,1) = 0.01;   % th2 weight
     Q(2,2) = 1;   % th1 weight
 end
     
-[L,~,Ec] = lqr(A,B,Q,R); 
+[L,~,Ec] = lqr(A,B,Q,R);
 Ac = A - B*L; Bc = B; Cc = [C; -L]; Dc = [D; 1];
 inputs = {'r'}; outputs{3} = 'u';
 sys_ss_ctrl = ss(Ac,Bc,Cc,Dc,'statename',states,'inputname',inputs,'outputname',outputs);
@@ -115,7 +115,7 @@ title('Step Response with LQR Control')
 % Some printouts
 if strcmpi(input,'torque')
     fprintf('tau_max = %f\n',max(abs(y_sim(:,3)))); % ~3.5 Nm max
-elseif strcmpi(input,'dc-motor')
+elseif strcmpi(input,'voltage')
     fprintf('u_max = %f\n',max(abs(y_sim(:,3)))); % ~24 Nm max
 elseif strcmpi(input,'speed')
     fprintf('w_ref_max = %f\n',max(abs(y_sim(:,3)))); % ~7 Nm max

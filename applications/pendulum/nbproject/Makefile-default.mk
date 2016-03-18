@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.c main_declarations.c ../../api/pic32/modular_arms.c ../../api/pic32/pic32_i2c.c mpu9150.c
+SOURCEFILES_QUOTED_IF_SPACED=main.c main_declarations.c ../../api/pic32/modular_arms.c ../../api/pic32/pic32_i2c.c mpu9150.c motion_control.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/main_declarations.o ${OBJECTDIR}/_ext/725901204/modular_arms.o ${OBJECTDIR}/_ext/725901204/pic32_i2c.o ${OBJECTDIR}/mpu9150.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/main_declarations.o.d ${OBJECTDIR}/_ext/725901204/modular_arms.o.d ${OBJECTDIR}/_ext/725901204/pic32_i2c.o.d ${OBJECTDIR}/mpu9150.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/main_declarations.o ${OBJECTDIR}/_ext/725901204/modular_arms.o ${OBJECTDIR}/_ext/725901204/pic32_i2c.o ${OBJECTDIR}/mpu9150.o ${OBJECTDIR}/motion_control.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/main_declarations.o.d ${OBJECTDIR}/_ext/725901204/modular_arms.o.d ${OBJECTDIR}/_ext/725901204/pic32_i2c.o.d ${OBJECTDIR}/mpu9150.o.d ${OBJECTDIR}/motion_control.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/main_declarations.o ${OBJECTDIR}/_ext/725901204/modular_arms.o ${OBJECTDIR}/_ext/725901204/pic32_i2c.o ${OBJECTDIR}/mpu9150.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/main_declarations.o ${OBJECTDIR}/_ext/725901204/modular_arms.o ${OBJECTDIR}/_ext/725901204/pic32_i2c.o ${OBJECTDIR}/mpu9150.o ${OBJECTDIR}/motion_control.o
 
 # Source Files
-SOURCEFILES=main.c main_declarations.c ../../api/pic32/modular_arms.c ../../api/pic32/pic32_i2c.c mpu9150.c
+SOURCEFILES=main.c main_declarations.c ../../api/pic32/modular_arms.c ../../api/pic32/pic32_i2c.c mpu9150.c motion_control.c
 
 
 CFLAGS=
@@ -124,6 +124,12 @@ ${OBJECTDIR}/mpu9150.o: mpu9150.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/mpu9150.o 
 	@${FIXDEPS} "${OBJECTDIR}/mpu9150.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/mpu9150.o.d" -o ${OBJECTDIR}/mpu9150.o mpu9150.c   
 	
+${OBJECTDIR}/motion_control.o: motion_control.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/motion_control.o.d 
+	@${RM} ${OBJECTDIR}/motion_control.o 
+	@${FIXDEPS} "${OBJECTDIR}/motion_control.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE) -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -fframe-base-loclist  -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/motion_control.o.d" -o ${OBJECTDIR}/motion_control.o motion_control.c   
+	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -154,6 +160,12 @@ ${OBJECTDIR}/mpu9150.o: mpu9150.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/mpu9150.o.d 
 	@${RM} ${OBJECTDIR}/mpu9150.o 
 	@${FIXDEPS} "${OBJECTDIR}/mpu9150.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/mpu9150.o.d" -o ${OBJECTDIR}/mpu9150.o mpu9150.c   
+	
+${OBJECTDIR}/motion_control.o: motion_control.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/motion_control.o.d 
+	@${RM} ${OBJECTDIR}/motion_control.o 
+	@${FIXDEPS} "${OBJECTDIR}/motion_control.o.d" $(SILENT) -rsi ${MP_CC_DIR}../  -c ${MP_CC}  $(MP_EXTRA_CC_PRE)  -g -x c -c -mprocessor=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/motion_control.o.d" -o ${OBJECTDIR}/motion_control.o motion_control.c   
 	
 endif
 

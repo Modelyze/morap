@@ -189,7 +189,7 @@ float bind_angle(float input) {
 }
 
 // Performs one step of kalman filtered position
-const float Qth = 1e-6, Qbias = 1e-6, Rth = 0.2; // Noise covariances
+const float Qth = 1e-5, Qbias = 1e-6, Rth = 0.02; // Noise covariances
 const float dT = 1/((float) FS); // Sampling time
 float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
     // Performs one step of the kalman filter and returns the
@@ -249,9 +249,9 @@ float kalman_filtering(imu_store_struct* imu_data, UINT8* reset) {
 
 float complementary_filter(imu_store_struct* imu_data) {
     static float angle = M_PI;
-    const float comp_const = 0.99;
+    const float comp_const = 0.98;
 
-    if(fabsf(get_abs_plane_acc(imu_data) - 1.0) < 0.01 ) {
+    if(fabsf(get_abs_plane_acc(imu_data) - 1.0) < 0.02 ) {
         float gyro_angle = bind_angle(angle + get_control_signal(imu_data)*TS);
         float meas_angle = get_measurement(imu_data);
         if (gyro_angle - meas_angle > M_PI) meas_angle = 2*M_PI + meas_angle;
