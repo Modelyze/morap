@@ -31,7 +31,7 @@ End-effectors are devices meant to interact with the real world. They're attache
 The manufacturing process used to fabricate the necessary parts are 3d-printing.
 
 ## The MIT License
-Copyright (c) <year> <copyright holders>
+Copyright (c) 2016 Viktor Kozma and David Broman
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
