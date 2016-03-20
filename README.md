@@ -33,6 +33,7 @@ The manufacturing process used to fabricate the necessary parts are 3d-printing.
 ## The Simplified BSD License
 
 Copyright (c) 2016, Viktor Kozma and David Broman
+
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
